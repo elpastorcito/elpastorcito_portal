@@ -12,52 +12,77 @@ const corsHeaders = {
 }
 
 export const handler = async (event, context) => {
-  console.log('=== ADMIN API CALLED ===')
-  console.log('Method:', event.httpMethod)
-  console.log('Path:', event.path)
-  console.log('Body:', event.body)
-  
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' }
   }
 
   const path = event.path.replace('/api/admin/', '').replace(/\/$/, '')
-  console.log('Processed path:', path)
 
   try {
+    // Endpoint de diagnóstico
+    if (path === 'ping') {
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          hasUrl: !!process.env.SUPABASE_URL,
+          hasKey: !!process.env.SUPABASE_SERVICE_KEY,
+          urlPrefix: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.substring(0, 10) : 'missing'
+        })
+      }
+    }
+
     // AUTH: Verificar credenciales admin
     if (path === 'login') {
       const { user, password } = JSON.parse(event.body)
-      console.log('Login attempt - user:', user, 'password:', password)
       
+      // Primero verificar conexión a Supabase
       const { data, error } = await supabaseAdmin
         .from('config')
         .select('value')
         .in('key', ['admin_user', 'admin_password'])
 
-      console.log('Supabase query result:', data)
-      console.log('Supabase error:', error)
-
       if (error) {
-        console.error('Supabase error:', error)
-        throw error
+        return {
+          statusCode: 500,
+          headers: corsHeaders,
+          body: JSON.stringify({ 
+            success: false, 
+            error: 'Database error: ' + error.message 
+          })
+        }
       }
 
       const cfg = {}
-      data.forEach(row => cfg[row.key] = row.value)
-      console.log('Config parsed:', cfg)
+      if (data && data.length > 0) {
+        data.forEach(row => cfg[row.key] = row.value)
+      } else {
+        return {
+          statusCode: 200,
+          headers: corsHeaders,
+          body: JSON.stringify({ 
+            success: false, 
+            error: 'No config records found',
+            dataReceived: data 
+          })
+        }
+      }
 
       const valid = cfg.admin_user === user && cfg.admin_password === password
-      console.log('Login valid?', valid)
       
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: JSON.stringify({ success: valid })
+        body: JSON.stringify({ 
+          success: valid,
+          debug: valid ? undefined : { user, configUser: cfg.admin_user, configPass: cfg.admin_password }
+        })
       }
     }
 
-    // GET: Clientes (todos, no solo públicos)
+    // ... (resto del código se mantiene igual)
+    
+    // GET: Clientes
     if (path === 'clients') {
       const { data, error } = await supabaseAdmin
         .from('clients')
@@ -72,7 +97,7 @@ export const handler = async (event, context) => {
       }
     }
 
-    // GET: Todas las redes sociales (incluidas inactivas)
+    // GET: Todas las redes sociales
     if (path === 'socials-all') {
       const { data, error } = await supabaseAdmin
         .from('social_networks')
@@ -87,7 +112,7 @@ export const handler = async (event, context) => {
       }
     }
 
-    // GET: Todo el menú (incluidos no disponibles)
+    // GET: Todo el menú
     if (path === 'menu-all') {
       const { data, error } = await supabaseAdmin
         .from('menu_items')
@@ -195,7 +220,7 @@ export const handler = async (event, context) => {
       }
     }
 
-    // POST: Upload image (logo o menu)
+    // POST: Upload image
     if (path === 'upload') {
       const { filePath, contentType, base64Data } = JSON.parse(event.body)
       const buffer = Buffer.from(base64Data, 'base64')
@@ -229,7 +254,6 @@ export const handler = async (event, context) => {
     }
 
   } catch (err) {
-    console.error('Error:', err)
     return {
       statusCode: 500,
       headers: corsHeaders,
