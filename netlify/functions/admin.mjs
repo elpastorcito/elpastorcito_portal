@@ -9,9 +9,34 @@ const supabaseAdmin = createClient(
 )
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
+}
+
+// Simple rate limiting: almacenar intentos en memoria (se reinicia al redeploy)
+const loginAttempts = new Map()
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000 // 1 hora
+const MAX_ATTEMPTS = 5
+
+function getClientIP(event) {
+  return event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || 'unknown'
+}
+
+function checkRateLimit(ip) {
+  const now = Date.now()
+  const attempts = loginAttempts.get(ip) || []
+  
+  // Filtrar intentos fuera de la ventana de tiempo
+  const recentAttempts = attempts.filter(time => now - time < RATE_LIMIT_WINDOW)
+  
+  if (recentAttempts.length >= MAX_ATTEMPTS) {
+    return false // Rate limit excedido
+  }
+  
+  recentAttempts.push(now)
+  loginAttempts.set(ip, recentAttempts)
+  return true
 }
 
 export const handler = async (event, context) => {
@@ -22,8 +47,22 @@ export const handler = async (event, context) => {
   const path = event.path.replace('/api/admin/', '')
 
   try {
-    // AUTH: Verificar credenciales admin
+    // AUTH: Verificar credenciales admin con rate limiting
     if (path === 'login') {
+      const ip = getClientIP(event)
+      
+      // Verificar rate limit
+      if (!checkRateLimit(ip)) {
+        return {
+          statusCode: 429,
+          headers: corsHeaders,
+          body: JSON.stringify({ 
+            success: false, 
+            error: 'Demasiados intentos. Por favor espera 1 hora antes de intentar nuevamente.' 
+          })
+        }
+      }
+      
       const { user, password } = JSON.parse(event.body)
       const { data, error } = await supabaseAdmin
         .from('config')
@@ -36,6 +75,13 @@ export const handler = async (event, context) => {
       data.forEach(row => cfg[row.key] = row.value)
 
       const valid = cfg.admin_user === user && cfg.admin_password === password
+      
+      // Si el login falla, el rate limit ya registró el intento
+      // Si tiene éxito, podríamos limpiar los intentos para esta IP
+      if (valid) {
+        loginAttempts.delete(ip) // Limpiar intentos tras login exitoso
+      }
+      
       return {
         statusCode: 200,
         headers: corsHeaders,

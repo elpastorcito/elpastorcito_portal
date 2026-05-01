@@ -65,7 +65,7 @@ pastorcito-portal/
 │   └── App.jsx          ← Toda la app (single file)
 ├── netlify/
 │   └── functions/
-│       └── admin-api.mjs ← Protege SERVICE_KEY
+│       └── admin.mjs ← Protege SERVICE_KEY
 ├── index.html
 ├── vite.config.js
 ├── package.json
@@ -75,7 +75,7 @@ pastorcito-portal/
 
 ## ⚠️ Notas importantes
 
-1. **Service Key**: Nunca expongas `SUPABASE_SERVICE_KEY` en el frontend. La Netlify Function `admin-api.mjs` es el único lugar que lo usa.
+1. **Service Key**: Nunca expongas `SUPABASE_SERVICE_KEY` en el frontend. La Netlify Function `admin.mjs` es el único lugar que lo usa.
 
 2. **WiFi real**: Esta app es un portal web. Para que funcione como captive portal real necesitás configurar tu router (MikroTik, Ubiquiti, OpenWRT) para redirigir a esta URL después de autenticar.
 

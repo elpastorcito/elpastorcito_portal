@@ -3,6 +3,11 @@ import { createClient } from '@supabase/supabase-js'
 const URL = import.meta.env.VITE_SUPABASE_URL
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+// Validación de variables de entorno críticas
+if (!URL || !ANON_KEY) {
+  throw new Error('Faltan variables de entorno de Supabase. Asegúrate de configurar VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en tu archivo .env')
+}
+
 export const supabase = createClient(URL, ANON_KEY)
 
 // Admin API wrapper - usa Netlify Functions (no expone service key)
