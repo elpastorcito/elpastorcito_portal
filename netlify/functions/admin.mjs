@@ -1,6 +1,3 @@
-// netlify/functions/admin-api.js
-// Protege el SERVICE_KEY de Supabase - nunca llega al frontend
-
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseAdmin = createClient(
@@ -15,27 +12,44 @@ const corsHeaders = {
 }
 
 export const handler = async (event, context) => {
+  console.log('=== ADMIN API CALLED ===')
+  console.log('Method:', event.httpMethod)
+  console.log('Path:', event.path)
+  console.log('Body:', event.body)
+  
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' }
   }
 
-  const path = event.path.replace('/api/admin/', '')
+  const path = event.path.replace('/api/admin/', '').replace(/\/$/, '')
+  console.log('Processed path:', path)
 
   try {
     // AUTH: Verificar credenciales admin
     if (path === 'login') {
       const { user, password } = JSON.parse(event.body)
+      console.log('Login attempt - user:', user, 'password:', password)
+      
       const { data, error } = await supabaseAdmin
         .from('config')
         .select('value')
         .in('key', ['admin_user', 'admin_password'])
 
-      if (error) throw error
+      console.log('Supabase query result:', data)
+      console.log('Supabase error:', error)
+
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
 
       const cfg = {}
       data.forEach(row => cfg[row.key] = row.value)
+      console.log('Config parsed:', cfg)
 
       const valid = cfg.admin_user === user && cfg.admin_password === password
+      console.log('Login valid?', valid)
+      
       return {
         statusCode: 200,
         headers: corsHeaders,
@@ -215,6 +229,7 @@ export const handler = async (event, context) => {
     }
 
   } catch (err) {
+    console.error('Error:', err)
     return {
       statusCode: 500,
       headers: corsHeaders,
