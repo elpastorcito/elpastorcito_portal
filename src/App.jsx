@@ -1308,6 +1308,7 @@ function SuccessScreen({ name, cfg }) {
 function AdminLogin({ onLogin }) {
   const [user, setUser] = useState('')
   const [pass, setPass] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -1324,12 +1325,8 @@ function AdminLogin({ onLogin }) {
         setError('Usuario o contraseña incorrectos')
       }
     } catch (err) {
-      // Fallback a credenciales hardcodeadas si falla la API
-      if (user === 'admin' && pass === 'admin123') {
-        onLogin()
-      } else {
-        setError('Usuario o contraseña incorrectos')
-      }
+      console.error('Error en login:', err)
+      setError('Error de conexión. Verifica tu configuración.')
     } finally {
       setLoading(false)
     }
@@ -1356,18 +1353,44 @@ function AdminLogin({ onLogin }) {
               placeholder="admin"
               value={user}
               onChange={e => setUser(e.target.value)}
+              autoComplete="username"
             />
           </div>
 
           <div className="form-group">
             <label className="form-label">Contraseña</label>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="••••••"
-              value={pass}
-              onChange={e => setPass(e.target.value)}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className="form-input"
+                placeholder="••••••"
+                value={pass}
+                onChange={e => setPass(e.target.value)}
+                autoComplete="current-password"
+                style={{ paddingRight: '50px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                  padding: '4px',
+                  opacity: 0.6,
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.opacity = '1'}
+                onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
@@ -1375,7 +1398,9 @@ function AdminLogin({ onLogin }) {
           </button>
         </form>
 
-        <p className="login-hint">Primer acceso: admin / admin123</p>
+        <p className="login-hint">
+          ¿Olvidaste tu contraseña? Configúrala en Supabase → tabla config
+        </p>
       </div>
     </div>
   )
