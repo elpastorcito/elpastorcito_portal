@@ -1,13 +1,21 @@
 [build]
   command = "npm run build"
   publish = "dist"
-  functions = "functions"
+  functions = "netlify/functions"
 
+# Redirección específica para admin - captura toda la ruta /api/admin/*
+[[redirects]]
+  from = "/api/admin/*"
+  to = "/.netlify/functions/admin/:splat"
+  status = 200
+
+# Redirección general para otras posibles APIs
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
+# SPA fallback - redirige todo lo demás a index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
