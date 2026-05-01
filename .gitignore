@@ -1,36 +1,55 @@
 ```
-# Environment variables
-.env
-.env.local
-.env.
-
-# Logs
-*.log
-
-# Dependencies
-node_modules/
-
-# Build artifacts
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
 dist/
 build/
 target/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.py.class
-.Python
-env/
-venv/
-.venv/
-.eggs/
-.egg-info/
-*.egg-info/
-*.so
-*.dylib
+*.class
+*.exe
 *.dll
+*.so
+*.a
+*.out
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+.env
+.env.local
+.env.*
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Python specific
+.mypy_cache/
+.pytest_cache/
+
+# Java/Gradle
+.gradle/
+build/
 
 # Compressed files
 *.zip
@@ -51,155 +70,4 @@ venv/
 *.Z
 *.lz
 *.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
-
-# Editor/IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Testing
-.coverage
-htmlcov/
-coverage/
-.pytest_cache/
-.mypy_cache/
-
-# Gradle
-.gradle/
-
-# Julia
-julia-*/
-
-# Zig
-zig-cache/
-zig-out/
-
-# Go
-*.o
-*.a
-*.out
-*.so
-
-# Java
-*.class
-*.jar
-*.war
-*.ear
-*.nar
-*.hprof
-*.dump
-!*.java
-!*.class
-
-# C/C++
-*.exe
-*.dll
-*.so
-*.a
-*.obj
-*.out
-*.ilk
-*.iobj
-*.ipdb
-*.pdb
-*.tlog
-*.aps
-*.ncb
-*.opt
-*.plg
-*.hpj
-*.mdp
-*.cache
-*.obj/
-*.i/
-*.pch
-*.ilk
-*.tmp
-*.rsp
-*.pgc
-*.pgd
-*.meta
-*.pidb
-*.layout.bin
-*.sln.docstates
-*.VC.VCMI
-*.aps
-*.user
-*.userosscache
-*.suo
-!*.c
-!*.cpp
-!*.h
-!*.hpp
-
-# Node.js
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-node_modules/
-jspm_packages/
-*.log
-.npm
-.npmrc
-.nyc_output
-coverage/
-.nyc_output/
-*.lcov
-*.orig
-*.rej
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-.fuse_hidden*
-.directory
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Icon?
-perf-*.map
-.yarn-integrity
-.yarn-metadata.json
-node_modules/
-jspm_packages/
-typings/
-.nyc_output/
-coverage/
-lib-cov/
-*.seed
-*.pid
-*.gz
-*.zip
-*.tar
-*.tar.*
-*.tgz
-*.rar
-*.7z
-*.bz2
-*.xz
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
 ```
