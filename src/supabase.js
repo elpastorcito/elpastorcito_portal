@@ -65,6 +65,15 @@ export const adminApi = {
     return res.json()
   },
 
+  // Alias para StatsTab
+  async getMenuItems() {
+    return this.getMenuAll()
+  },
+
+  async getSocialNetworks() {
+    return this.getSocialsAll()
+  },
+
   async getConfigAll() {
     const res = await fetch('/api/admin/config-all', {
       headers: { 'Authorization': `Bearer ${this.getToken()}` }
@@ -130,6 +139,10 @@ export const adminApi = {
       body: JSON.stringify({ item })
     })
     return res.json()
+  },
+
+  async updateMenuItem(id, item) {
+    return this.saveMenuItem({ id, ...item })
   },
 
   async uploadImage(filePath, file) {

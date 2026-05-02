@@ -4,6 +4,13 @@ import { fmtPrice, fmtDate, fmtDateShort, genSlug, getFirstName, exportCSV } fro
 import { buildStyles } from './utils/styles.js'
 import { useConfig } from './hooks/useConfig.js'
 import { useToast } from './hooks/useToast.js'
+import { Portal } from './components/Portal.jsx'
+import { SuccessScreen } from './components/SuccessScreen.jsx'
+import { AdminPanel } from './components/AdminPanel.jsx'
+import { Flames } from './components/Flames.jsx'
+import { TermsModal } from './components/TermsModal.jsx'
+import { AdminLogin } from './components/AdminLogin.jsx'
+import { SocialIcon } from './components/SocialIcon.jsx'
 
 
 // ============================================

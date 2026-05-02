@@ -2,22 +2,22 @@
 # Dependencies
 node_modules/
 
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
 # Environment
 .env
 .env.local
 *.env.*
 
-# Logs and temp files
+# Logs
 *.log
-*.tmp
 
-# Editors
-.vscode/
-.idea/
-
-# Build artifacts
+# Build outputs
 dist/
 build/
-coverage/
-.nyc_output/
 ```
