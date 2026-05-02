@@ -4,68 +4,11 @@ import { fmtPrice, fmtDate, fmtDateShort, genSlug, getFirstName, exportCSV } fro
 import { buildStyles } from './utils/styles.js'
 import { useConfig } from './hooks/useConfig.js'
 import { useToast } from './hooks/useToast.js'
+import { Flames } from './components/Flames'
+import { TermsModal } from './components/TermsModal'
+import { SocialIcon } from './components/SocialIcon'
 
 
-// ============================================
-// COMPONENTE: LLAMAS ANIMADAS
-// ============================================
-function Flames() {
-  const flames = Array.from({ length: 15 }, (_, i) => ({
-    height: 30 + Math.random() * 60,
-    delay: Math.random() * 2,
-    duration: 1.5 + Math.random() * 1.5,
-    opacity: 0.4 + Math.random() * 0.4
-  }))
-
-  return (
-    <div className="flames-container">
-      {flames.map((f, i) => (
-        <div
-          key={i}
-          className="flame"
-          style={{
-            height: f.height,
-            animationDelay: `${f.delay}s`,
-            animationDuration: `${f.duration}s`,
-            opacity: f.opacity
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-// ============================================
-// COMPONENTE: MODAL TÉRMINOS
-// ============================================
-function TermsModal({ businessName, onClose }) {
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-title">Términos y Condiciones</div>
-        <div className="modal-text">
-          <p><strong>1. Aceptación</strong></p>
-          <p>Al conectarte a la red WiFi de {businessName}, aceptás estos términos y condiciones de uso.</p>
-          <br/>
-          <p><strong>2. Uso adecuado</strong></p>
-          <p>El servicio de WiFi es gratuito para clientes del local. Está prohibido el uso indebido de la red, incluyendo actividades ilegales o que afecten el funcionamiento del servicio.</p>
-          <br/>
-          <p><strong>3. Datos personales</strong></p>
-          <p>Los datos solicitados (nombre, teléfono, email) se utilizan únicamente para mejorar nuestro servicio y mantenerte informado sobre novedades. No compartimos tu información con terceros.</p>
-          <br/>
-          <p><strong>4. Limitación de responsabilidad</strong></p>
-          <p>{businessName} no se responsabiliza por problemas técnicos en la conexión ni por la seguridad de los dispositivos conectados a la red.</p>
-          <br/>
-          <p><strong>5. Modificaciones</strong></p>
-          <p>Nos reservamos el derecho de modificar estos términos en cualquier momento.</p>
-        </div>
-        <button className="btn btn-primary" onClick={onClose}>
-          Entendido ✓
-        </button>
-      </div>
-    </div>
-  )
-}
 
 // ============================================
 // COMPONENTE: PORTAL (Registro)
