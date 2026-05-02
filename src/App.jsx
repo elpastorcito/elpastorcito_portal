@@ -989,7 +989,7 @@ function useConfig() {
       data.forEach(row => { newCfg[row.key] = row.value })
       setCfg(newCfg)
     } catch (e) {
-      console.log('Usando config por defecto')
+      // Silencioso: usa config por defecto si no hay datos
     } finally {
       setLoading(false)
     }
@@ -1112,7 +1112,7 @@ function Portal({ cfg, onRegister }) {
       onRegister(form.name.trim())
     } catch (err) {
       setSubmitError('Error al registrarse. Intentá de nuevo.')
-      console.error(err)
+      // Error ya manejado en UI
     } finally {
       setLoading(false)
     }
@@ -1233,7 +1233,7 @@ function SuccessScreen({ name, cfg }) {
       if (menuData) setMenu(menuData)
       if (socialsData) setSocials(socialsData)
     } catch (e) {
-      console.error(e)
+      // Error silencioso en pantalla de éxito
     }
   }
 
@@ -1340,7 +1340,6 @@ function AdminLogin({ onLogin }) {
         setError(result.error || 'Email o contraseña incorrectos')
       }
     } catch (err) {
-      console.error('Error en login:', err)
       setError('Error de conexión. Verifica tu configuración.')
     } finally {
       setLoading(false)
@@ -1433,7 +1432,7 @@ function ClientsTab() {
 
   useEffect(() => { loadClients() }, [])
   useEffect(() => {
-    const term = search.toLowerCase()
+    const term = search.toLowerCase().trim()
     setFiltered(clients.filter(c => 
       c.name.toLowerCase().includes(term) ||
       c.phone.includes(term) ||
@@ -1550,7 +1549,7 @@ function StatsTab() {
       const data = await adminApi.getClients()
       setClients(data)
     } catch (e) {
-      console.error(e)
+      showToast('Error al cargar clientes')
     } finally {
       setLoading(false)
     }
@@ -1678,13 +1677,13 @@ function MenuTab() {
   }
 
   async function deleteItem(item) {
-    if (!confirm(`¿Eliminar "${item.name}"?`)) return
+    if (!window.confirm(`¿Estás seguro que querés eliminar "${item.name}"?\n\nEsta acción no se puede deshacer.`)) return
     try {
       await adminApi.deleteMenuItem(item.id)
       setItems(items.filter(i => i.id !== item.id))
-      showToast('Item eliminado')
+      showToast('Item eliminado correctamente')
     } catch (e) {
-      showToast('Error al eliminar')
+      showToast('Error al eliminar el item. Intentá de nuevo.')
     }
   }
 
