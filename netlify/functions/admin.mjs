@@ -415,7 +415,7 @@ export const handler = async (event, context) => {
         
         const { error: uploadError } = await supabaseAdmin
           .storage
-          .from('images')
+          .from('Images')  // El nombre del bucket es case-sensitive: 'Images' con I mayúscula
           .upload(filePath, buffer, {
             contentType,
             upsert: true,
@@ -431,7 +431,7 @@ export const handler = async (event, context) => {
 
         const { data: { publicUrl } } = supabaseAdmin
           .storage
-          .from('images')
+          .from('Images')  // El nombre del bucket es case-sensitive: 'Images' con I mayúscula
           .getPublicUrl(filePath)
           
         console.log('Upload complete:', publicUrl)
