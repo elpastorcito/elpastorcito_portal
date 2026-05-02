@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://tu-dominio.netlify.app/sitemap.xml
+Sitemap: https://elpastorcito-portal.netlify.app/sitemap.xml
