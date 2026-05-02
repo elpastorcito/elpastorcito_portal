@@ -13,7 +13,10 @@ const supabaseAdmin = createClient(
 const corsHeaders = {
   'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block'
 }
 
 // Rate limiting persistente usando tabla en BD
@@ -124,8 +127,9 @@ export const handler = async (event, context) => {
       
       const { email, password } = JSON.parse(event.body)
       
-      // Validar email básico
-      if (!email || !email.includes('@')) {
+      // Validar email con regex más robusto
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!email || !emailRegex.test(email.trim())) {
         await recordLoginAttempt(ip)
         return {
           statusCode: 400,
@@ -133,7 +137,17 @@ export const handler = async (event, context) => {
           body: JSON.stringify({ success: false, error: 'Email inválido' })
         }
       }
-      
+
+      // Validar que la contraseña no esté vacía
+      if (!password || password.length === 0) {
+        await recordLoginAttempt(ip)
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({ success: false, error: 'Contraseña requerida' })
+        }
+      }
+
       // Intentar login con Supabase Auth
       const { data, error } = await supabaseAdmin.auth.signInWithPassword({
         email: email.trim(),
@@ -324,10 +338,49 @@ export const handler = async (event, context) => {
         body: JSON.stringify({ success: true })
       }
     }
-
     // POST: Upload image (logo o menu)
     if (path === 'upload') {
       const { filePath, contentType, base64Data } = JSON.parse(event.body)
+      
+      // Validar que los datos requeridos existan
+      if (!base64Data || !contentType) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({ error: 'Datos de imagen inválidos' })
+        }
+      }
+      
+      // Validar tamaño máximo (10MB en base64 ≈ 13.3MB string)
+      const MAX_SIZE_MB = 10
+      const maxSizeBytes = MAX_SIZE_MB * 1024 * 1024
+      const base64DataSize = Buffer.byteLength(base64Data, 'base64')
+      
+      if (base64DataSize > maxSizeBytes) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({ 
+            error: `Imagen demasiado grande. Máximo ${MAX_SIZE_MB}MB`,
+            size: Math.round(base64DataSize / 1024 / 1024 * 100) / 100 + 'MB',
+            max: MAX_SIZE_MB + 'MB'
+          })
+        }
+      }
+      
+      // Validar tipo de contenido
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+      if (!allowedTypes.includes(contentType)) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({ 
+            error: 'Tipo de archivo no permitido. Solo JPEG, PNG, WebP o GIF',
+            type: contentType
+          })
+        }
+      }
+      
       const buffer = Buffer.from(base64Data, 'base64')
 
       const { error } = await supabaseAdmin
