@@ -1,8 +1,10 @@
 // netlify/functions/admin.mjs
 // Protege el SERVICE_KEY de Supabase - nunca llega al frontend
 // Ahora usa Supabase Auth con email/password y validación por UID
+// MEJORA DE SEGURIDAD: Validación estricta con Zod
 
 import { createClient } from '@supabase/supabase-js'
+import { z } from 'zod'
 
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
@@ -40,6 +42,72 @@ function isValidOrigin(origin) {
 // Rate limiting persistente usando tabla en BD
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000 // 1 hora
 const MAX_ATTEMPTS = 5
+
+// Schemas de validación con Zod para todos los endpoints
+const loginSchema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres')
+})
+
+const updateClientSchema = z.object({
+  id: z.string().uuid('ID de cliente inválido'),
+  name: z.string().min(2, 'Nombre muy corto').max(100, 'Nombre muy largo'),
+  phone: z.string().optional(),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  notes: z.string().max(500, 'Notas muy largas').optional()
+})
+
+const createClientSchema = z.object({
+  name: z.string().min(2, 'Nombre muy corto').max(100, 'Nombre muy largo'),
+  phone: z.string().optional(),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  notes: z.string().max(500, 'Notas muy largas').optional()
+})
+
+const updateSocialSchema = z.object({
+  id: z.string().uuid('ID inválido'),
+  name: z.string().min(2, 'Nombre muy corto').max(50, 'Nombre muy largo'),
+  url: z.string().url('URL inválida'),
+  active: z.boolean(),
+  sort_order: z.number().int().min(0).optional()
+})
+
+const createSocialSchema = z.object({
+  name: z.string().min(2, 'Nombre muy corto').max(50, 'Nombre muy largo'),
+  url: z.string().url('URL inválida'),
+  active: z.boolean().default(true),
+  sort_order: z.number().int().min(0).optional()
+})
+
+const updateMenuItemSchema = z.object({
+  id: z.string().uuid('ID inválido'),
+  name: z.string().min(2, 'Nombre muy corto').max(100, 'Nombre muy largo'),
+  description: z.string().max(500, 'Descripción muy larga').optional(),
+  price: z.number().positive('Precio debe ser positivo'),
+  category: z.string().min(2, 'Categoría muy corta').max(50, 'Categoría muy larga'),
+  available: z.boolean(),
+  image_url: z.string().url('URL de imagen inválida').optional().or(z.literal(''))
+})
+
+const createMenuItemSchema = z.object({
+  name: z.string().min(2, 'Nombre muy corto').max(100, 'Nombre muy largo'),
+  description: z.string().max(500, 'Descripción muy larga').optional(),
+  price: z.number().positive('Precio debe ser positivo'),
+  category: z.string().min(2, 'Categoría muy corta').max(50, 'Categoría muy larga'),
+  available: z.boolean().default(true),
+  image_url: z.string().url('URL de imagen inválida').optional().or(z.literal(''))
+})
+
+const uploadImageSchema = z.object({
+  filePath: z.string().min(1, 'Ruta requerida'),
+  contentType: z.string(),
+  base64Data: z.string().min(1, 'Datos de imagen requeridos')
+})
+
+const updateConfigSchema = z.object({
+  key: z.string().min(2, 'Clave inválida').max(50, 'Clave muy larga'),
+  value: z.string().max(1000, 'Valor muy largo')
+})
 
 function getClientIP(event) {
   return event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || 'unknown'
@@ -154,28 +222,30 @@ export const handler = async (event, context) => {
         }
       }
       
-      const { email, password } = JSON.parse(event.body)
+      // VALIDACIÓN CON ZOD: Validar datos de entrada antes de procesar
+      let validatedData
+      try {
+        const rawData = JSON.parse(event.body)
+        validatedData = loginSchema.parse(rawData)
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          const errorMessage = validationError.errors.map(e => e.message).join(', ')
+          console.warn('Login validation error:', validationError.errors)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              success: false, 
+              error: `Datos inválidos: ${errorMessage}` 
+            })
+          }
+        }
+        throw validationError
+      }
       
-      // Validar email con regex más robusto
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!email || !emailRegex.test(email.trim())) {
-        await recordLoginAttempt(ip)
-        return {
-          statusCode: 400,
-          headers: corsHeaders,
-          body: JSON.stringify({ success: false, error: 'Email inválido' })
-        }
-      }
-
-      // Validar que la contraseña no esté vacía
-      if (!password || password.length === 0) {
-        await recordLoginAttempt(ip)
-        return {
-          statusCode: 400,
-          headers: corsHeaders,
-          body: JSON.stringify({ success: false, error: 'Contraseña requerida' })
-        }
-      }
+      const { email, password } = validatedData
+      
+      // Ya no se necesita validación manual adicional - Zod lo hizo
 
       // Intentar login con Supabase Auth
       const { data, error } = await supabaseAdmin.auth.signInWithPassword({
@@ -293,7 +363,28 @@ export const handler = async (event, context) => {
 
     // POST: Upsert config
     if (path === 'config-save') {
-      const { items } = JSON.parse(event.body)
+      // VALIDACIÓN CON ZOD
+      let validatedData
+      try {
+        const rawData = JSON.parse(event.body)
+        validatedData = z.array(updateConfigSchema).parse(rawData.items)
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          const errorMessage = validationError.errors.map(e => e.message).join(', ')
+          console.warn('Config validation error:', validationError.errors)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              success: false, 
+              error: `Datos inválidos: ${errorMessage}` 
+            })
+          }
+        }
+        throw validationError
+      }
+      
+      const { items } = { items: validatedData }
       const { error } = await supabaseAdmin
         .from('config')
         .upsert(items, { onConflict: 'key' })
@@ -308,7 +399,28 @@ export const handler = async (event, context) => {
 
     // POST: Guardar redes sociales
     if (path === 'socials-save') {
-      const { networks } = JSON.parse(event.body)
+      // VALIDACIÓN CON ZOD
+      let validatedData
+      try {
+        const rawData = JSON.parse(event.body)
+        validatedData = z.array(updateSocialSchema).parse(rawData.networks)
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          const errorMessage = validationError.errors.map(e => e.message).join(', ')
+          console.warn('Social validation error:', validationError.errors)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              success: false, 
+              error: `Datos inválidos: ${errorMessage}` 
+            })
+          }
+        }
+        throw validationError
+      }
+      
+      const { networks } = { networks: validatedData }
       const { error } = await supabaseAdmin
         .from('social_networks')
         .upsert(networks, { onConflict: 'id' })
@@ -323,7 +435,31 @@ export const handler = async (event, context) => {
 
     // POST: Toggle disponibilidad menú
     if (path === 'menu-toggle') {
-      const { id, available } = JSON.parse(event.body)
+      // VALIDACIÓN CON ZOD
+      let validatedData
+      try {
+        const rawData = JSON.parse(event.body)
+        validatedData = z.object({
+          id: z.string().uuid('ID inválido'),
+          available: z.boolean()
+        }).parse(rawData)
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          const errorMessage = validationError.errors.map(e => e.message).join(', ')
+          console.warn('Menu toggle validation error:', validationError.errors)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              success: false, 
+              error: `Datos inválidos: ${errorMessage}` 
+            })
+          }
+        }
+        throw validationError
+      }
+      
+      const { id, available } = validatedData
       const { error } = await supabaseAdmin
         .from('menu_items')
         .update({ available })
@@ -339,7 +475,30 @@ export const handler = async (event, context) => {
 
     // POST: Eliminar item menú
     if (path === 'menu-delete') {
-      const { id } = JSON.parse(event.body)
+      // VALIDACIÓN CON ZOD
+      let validatedData
+      try {
+        const rawData = JSON.parse(event.body)
+        validatedData = z.object({
+          id: z.string().uuid('ID inválido')
+        }).parse(rawData)
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          const errorMessage = validationError.errors.map(e => e.message).join(', ')
+          console.warn('Menu delete validation error:', validationError.errors)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              success: false, 
+              error: `Datos inválidos: ${errorMessage}` 
+            })
+          }
+        }
+        throw validationError
+      }
+      
+      const { id } = validatedData
       const { error } = await supabaseAdmin
         .from('menu_items')
         .delete()
@@ -355,7 +514,29 @@ export const handler = async (event, context) => {
 
     // POST: Upsert item menú
     if (path === 'menu-save') {
-      const { item } = JSON.parse(event.body)
+      // VALIDACIÓN CON ZOD - determinar si es create o update
+      let validatedData
+      try {
+        const rawData = JSON.parse(event.body)
+        const schema = rawData.item.id ? updateMenuItemSchema : createMenuItemSchema
+        validatedData = z.object({ item: schema }).parse(rawData)
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          const errorMessage = validationError.errors.map(e => e.message).join(', ')
+          console.warn('Menu save validation error:', validationError.errors)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              success: false, 
+              error: `Datos inválidos: ${errorMessage}` 
+            })
+          }
+        }
+        throw validationError
+      }
+      
+      const { item } = validatedData
       const { error } = await supabaseAdmin
         .from('menu_items')
         .upsert(item, { onConflict: 'id' })
@@ -369,8 +550,28 @@ export const handler = async (event, context) => {
     }
     // POST: Upload image (logo o menu)
     if (path === 'upload') {
+      // VALIDACIÓN CON ZOD
+      let validatedData
       try {
-        const { filePath, contentType, base64Data } = JSON.parse(event.body)
+        const rawData = JSON.parse(event.body)
+        validatedData = uploadImageSchema.parse(rawData)
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          const errorMessage = validationError.errors.map(e => e.message).join(', ')
+          console.warn('Upload validation error:', validationError.errors)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              error: `Datos inválidos: ${errorMessage}` 
+            })
+          }
+        }
+        throw validationError
+      }
+      
+      try {
+        const { filePath, contentType, base64Data } = validatedData
         
         console.log('Upload request received:', { 
           filePath, 

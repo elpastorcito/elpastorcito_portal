@@ -11,7 +11,8 @@ if (!URL || !ANON_KEY) {
 export const supabase = createClient(URL, ANON_KEY)
 
 // Admin API wrapper - usa Netlify Functions con autenticación por token JWT
-// NOTA DE SEGURIDAD: En producción, considerar migrar a cookies HTTP-only para mayor protección XSS
+// ⚠️ ADVERTENCIA DE SEGURIDAD: sessionStorage es vulnerable a XSS
+// TODO: Migrar a cookies HTTP-only en producción para mayor protección
 export const adminApi = {
   // Token se guarda en sessionStorage (vulnerable a XSS - mejorar en el futuro)
   getToken() {
