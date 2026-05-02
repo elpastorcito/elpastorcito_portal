@@ -11,18 +11,39 @@ if (!URL || !ANON_KEY) {
 export const supabase = createClient(URL, ANON_KEY)
 
 // Admin API wrapper - usa Netlify Functions con autenticación por token JWT
+// NOTA DE SEGURIDAD: En producción, considerar migrar a cookies HTTP-only para mayor protección XSS
 export const adminApi = {
-  // Token se guarda en sessionStorage después del login
+  // Token se guarda en sessionStorage (vulnerable a XSS - mejorar en el futuro)
   getToken() {
-    return sessionStorage.getItem('admin_token')
+    try {
+      return sessionStorage.getItem('admin_token')
+    } catch (e) {
+      console.error('Error accessing sessionStorage:', e)
+      return null
+    }
   },
 
   setToken(token) {
-    sessionStorage.setItem('admin_token', token)
+    try {
+      // Validar que el token tenga formato JWT básico antes de guardar
+      if (!token || typeof token !== 'string' || !token.includes('.')) {
+        console.warn('Invalid token format')
+        return false
+      }
+      sessionStorage.setItem('admin_token', token)
+      return true
+    } catch (e) {
+      console.error('Error saving token to sessionStorage:', e)
+      return false
+    }
   },
 
   clearToken() {
-    sessionStorage.removeItem('admin_token')
+    try {
+      sessionStorage.removeItem('admin_token')
+    } catch (e) {
+      console.error('Error clearing token from sessionStorage:', e)
+    }
   },
 
   async login(email, password) {

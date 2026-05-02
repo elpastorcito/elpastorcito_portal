@@ -10,13 +10,31 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
+// Lista blanca de orígenes permitidos (CORS)
+const ALLOWED_ORIGINS = [
+  'https://tu-dominio-production.netlify.app',
+  'https://tu-dominio-staging.netlify.app',
+  'http://localhost:5173',
+  'http://localhost:8888'
+].filter(Boolean)
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
+  'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN && ALLOWED_ORIGINS.includes(process.env.ALLOWED_ORIGIN) 
+    ? process.env.ALLOWED_ORIGIN 
+    : ALLOWED_ORIGINS[0],
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
-  'X-XSS-Protection': '1; mode=block'
+  'X-XSS-Protection': '1; mode=block',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
+}
+
+// Función para validar origen CORS
+function isValidOrigin(origin) {
+  if (!origin) return false
+  return ALLOWED_ORIGINS.includes(origin) || 
+         (process.env.ALLOWED_ORIGIN && origin === process.env.ALLOWED_ORIGIN)
 }
 
 // Rate limiting persistente usando tabla en BD
@@ -101,6 +119,17 @@ async function requireAuth(event) {
 }
 
 export const handler = async (event, context) => {
+  // Validar origen CORS antes de procesar cualquier solicitud
+  const origin = event.headers.origin
+  if (origin && !isValidOrigin(origin)) {
+    console.warn('CORS blocked request from:', origin)
+    return { 
+      statusCode: 403, 
+      headers: corsHeaders, 
+      body: JSON.stringify({ error: 'Origen no permitido' }) 
+    }
+  }
+
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' }
   }
@@ -359,6 +388,40 @@ export const handler = async (event, context) => {
           }
         }
         
+        // SANITIZACIÓN CRÍTICA: Prevenir Path Traversal
+        // 1. Remover cualquier intento de navegación hacia atrás
+        const sanitizedPath = filePath.replace(/\.\.\//g, '').replace(/\.\.\\/g, '')
+        // 2. Asegurar que el path comience con el directorio esperado
+        const allowedPrefixes = ['logos/', 'menu/']
+        const hasValidPrefix = allowedPrefixes.some(prefix => sanitizedPath.startsWith(prefix))
+        
+        if (!hasValidPrefix) {
+          console.error('Invalid file path:', filePath)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              error: 'Ruta de archivo inválida. Debe comenzar con "logos/" o "menu/"',
+              provided: filePath
+            })
+          }
+        }
+        
+        // 3. Prevenir caracteres especiales peligrosos
+        if (/[\0\<\>\:\"\/\\\|\?\*]/.test(sanitizedPath)) {
+          console.error('Invalid characters in file path:', filePath)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              error: 'Caracteres inválidos en el nombre del archivo'
+            })
+          }
+        }
+        
+        // Usar el path sanitizado para el upload
+        const safeFilePath = sanitizedPath
+        
         // Validar tipo de contenido PRIMERO (más rápido)
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
         if (!allowedTypes.includes(contentType)) {
@@ -411,12 +474,12 @@ export const handler = async (event, context) => {
           }
         }
         
-        console.log('Uploading to storage:', filePath)
+        console.log('Uploading to storage:', safeFilePath)
         
         const { error: uploadError } = await supabaseAdmin
           .storage
           .from('Images')  // El nombre del bucket es case-sensitive: 'Images' con I mayúscula
-          .upload(filePath, buffer, {
+          .upload(safeFilePath, buffer, {
             contentType,
             upsert: true,
             cacheControl: '3600'
@@ -432,7 +495,7 @@ export const handler = async (event, context) => {
         const { data: { publicUrl } } = supabaseAdmin
           .storage
           .from('Images')  // El nombre del bucket es case-sensitive: 'Images' con I mayúscula
-          .getPublicUrl(filePath)
+          .getPublicUrl(safeFilePath)
           
         console.log('Upload complete:', publicUrl)
 
@@ -442,18 +505,16 @@ export const handler = async (event, context) => {
           body: JSON.stringify({ url: publicUrl })
         }
       } catch (uploadError) {
-        console.error('Detailed upload error:', {
+        console.error('Upload error:', {
           message: uploadError.message,
-          stack: uploadError.stack,
           name: uploadError.name
         })
         return {
           statusCode: 500,
           headers: corsHeaders,
           body: JSON.stringify({ 
-            error: 'Error al subir la imagen',
-            details: uploadError.message,
-            type: uploadError.name
+            error: 'Error al subir la imagen'
+            // NO exponer detalles internos al cliente
           })
         }
       }
@@ -466,11 +527,14 @@ export const handler = async (event, context) => {
     }
 
   } catch (err) {
-    console.error('Handler error:', err)
+    console.error('Handler error:', err.message)
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({ 
+        error: 'Error interno del servidor'
+        // NO exponer stack traces o detalles internos
+      })
     }
   }
 }
