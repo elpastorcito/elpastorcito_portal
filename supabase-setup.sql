@@ -12,17 +12,26 @@ CREATE TABLE IF NOT EXISTS clients (
   created_at timestamptz DEFAULT now()
 );
 
+-- Índices para mejorar rendimiento en búsquedas
+CREATE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone);
+CREATE INDEX IF NOT EXISTS idx_clients_created_at ON clients(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email) WHERE email IS NOT NULL;
+
 -- 2. Tabla de items del menú
 CREATE TABLE IF NOT EXISTS menu_items (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL,
   description text,
-  price numeric NOT NULL,
+  price numeric NOT NULL CHECK (price > 0),
   category text,
   image_url text,
   available boolean DEFAULT true,
   created_at timestamptz DEFAULT now()
 );
+
+-- Índices para menú
+CREATE INDEX IF NOT EXISTS idx_menu_available ON menu_items(available);
+CREATE INDEX IF NOT EXISTS idx_menu_category ON menu_items(category) WHERE category IS NOT NULL;
 
 -- 3. Tabla de redes sociales
 CREATE TABLE IF NOT EXISTS social_networks (
@@ -40,6 +49,16 @@ CREATE TABLE IF NOT EXISTS config (
   value text
 );
 
+-- 5. Tabla de administradores (vinculada a auth.users de Supabase)
+CREATE TABLE IF NOT EXISTS admins (
+  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email text NOT NULL UNIQUE,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Índice para búsqueda por email
+CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(email);
+
 -- ============================================
 -- SEED DATA
 -- ============================================
@@ -52,15 +71,13 @@ INSERT INTO social_networks (id, name, url, active, color, sort_order) VALUES
 ('wa', 'WhatsApp', '', false, '#25D366', 4)
 ON CONFLICT (id) DO NOTHING;
 
--- Configuración inicial
+-- Configuración inicial (sin contraseña - ahora se usa Supabase Auth)
 INSERT INTO config (key, value) VALUES
 ('business_name', 'El Pastorcito Parripollo'),
 ('slogan', '🔥 Pollos a la parrilla · Empanadas · Platos'),
 ('logo_url', ''),
 ('color_primary', '#E85D04'),
-('color_secondary', '#FAA307'),
-('admin_user', 'admin'),
-('admin_password', 'admin123')
+('color_secondary', '#FAA307')
 ON CONFLICT (key) DO NOTHING;
 
 -- ============================================
@@ -72,6 +89,7 @@ ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE menu_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE social_networks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para clients: cualquiera puede insertar, solo admin puede leer todo
 CREATE POLICY "Allow public insert" ON clients
@@ -79,6 +97,13 @@ CREATE POLICY "Allow public insert" ON clients
 
 CREATE POLICY "Allow public read own" ON clients
   FOR SELECT TO anon USING (true);
+
+-- Política para admins: solo usuarios autenticados pueden ver admins
+CREATE POLICY "Allow authenticated read admins" ON admins
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Allow service insert admins" ON admins
+  FOR INSERT TO service_role WITH CHECK (true);
 
 -- Políticas para menu_items: lectura pública, admin full
 CREATE POLICY "Allow public read menu" ON menu_items

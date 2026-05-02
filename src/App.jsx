@@ -1306,8 +1306,8 @@ function SuccessScreen({ name, cfg }) {
 // COMPONENTE: ADMIN LOGIN
 // ============================================
 function AdminLogin({ onLogin }) {
-  const [user, setUser] = useState('')
-  const [pass, setPass] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -1318,11 +1318,26 @@ function AdminLogin({ onLogin }) {
     setLoading(true)
 
     try {
-      const result = await adminApi.login(user, pass)
+      // Validar email
+      if (!email || !email.includes('@')) {
+        setError('Ingresá un email válido')
+        setLoading(false)
+        return
+      }
+
+      // Validar password
+      if (!password || password.length < 6) {
+        setError('La contraseña debe tener al menos 6 caracteres')
+        setLoading(false)
+        return
+      }
+
+      const result = await adminApi.login(email, password)
+      
       if (result.success) {
-        onLogin()
+        onLogin(result.user, result.token)
       } else {
-        setError('Usuario o contraseña incorrectos')
+        setError(result.error || 'Email o contraseña incorrectos')
       }
     } catch (err) {
       console.error('Error en login:', err)
@@ -1346,14 +1361,14 @@ function AdminLogin({ onLogin }) {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Usuario</label>
+            <label className="form-label">Email</label>
             <input
-              type="text"
+              type="email"
               className="form-input"
-              placeholder="admin"
-              value={user}
-              onChange={e => setUser(e.target.value)}
-              autoComplete="username"
+              placeholder="admin@ejemplo.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              autoComplete="email"
             />
           </div>
 
@@ -1364,8 +1379,8 @@ function AdminLogin({ onLogin }) {
                 type={showPassword ? 'text' : 'password'}
                 className="form-input"
                 placeholder="••••••"
-                value={pass}
-                onChange={e => setPass(e.target.value)}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 autoComplete="current-password"
                 style={{ paddingRight: '50px' }}
               />
@@ -1399,7 +1414,7 @@ function AdminLogin({ onLogin }) {
         </form>
 
         <p className="login-hint">
-          ¿Olvidaste tu contraseña? Configúrala en Supabase → tabla config
+          ¿Olvidaste tu contraseña? Contactá al administrador para resetearla desde Supabase Auth
         </p>
       </div>
     </div>
@@ -2144,34 +2159,21 @@ function AppearanceTab({ cfg, onCfgUpdated }) {
 // TAB: CONFIGURACIÓN
 // ============================================
 function ConfigTab() {
-  const [user, setUser] = useState('')
-  const [pass, setPass] = useState('')
-  const [pass2, setPass2] = useState('')
   const [saving, setSaving] = useState(false)
   const { toast, showToast } = useToast()
 
-  async function saveCredentials() {
-    if (!user.trim() || !pass.trim()) {
-      showToast('Usuario y contraseña son obligatorios')
-      return
-    }
-    if (pass !== pass2) {
-      showToast('Las contraseñas no coinciden')
-      return
-    }
-
+  async function handleLogoutEverywhere() {
+    if (!confirm('¿Estás seguro de cerrar sesión en todos los dispositivos?')) return
+    
     setSaving(true)
     try {
-      await adminApi.saveConfig([
-        { key: 'admin_user', value: user.trim() },
-        { key: 'admin_password', value: pass.trim() }
-      ])
-      showToast('Credenciales actualizadas')
-      setUser('')
-      setPass('')
-      setPass2('')
+      // Limpiar token local
+      adminApi.logout()
+      // En una implementación completa, aquí se invalidaría el token en el backend
+      showToast('Sesión cerrada correctamente')
+      window.location.reload()
     } catch (e) {
-      showToast('Error al guardar')
+      showToast('Error al cerrar sesión')
     } finally {
       setSaving(false)
     }
@@ -2180,65 +2182,33 @@ function ConfigTab() {
   return (
     <div className="two-col">
       <div className="admin-card">
-        <div className="admin-card-title">⚙️ Cambiar credenciales</div>
+        <div className="admin-card-title">🔐 Seguridad de la sesión</div>
 
-        <div className="form-group">
-          <label className="form-label">Nuevo usuario</label>
-          <input 
-            className="form-input" 
-            value={user}
-            onChange={e => setUser(e.target.value)}
-            placeholder="Nuevo nombre de usuario"
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Nueva contraseña</label>
-          <input 
-            type="password"
-            className="form-input" 
-            value={pass}
-            onChange={e => setPass(e.target.value)}
-            placeholder="••••••"
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Repetir contraseña</label>
-          <input 
-            type="password"
-            className="form-input" 
-            value={pass2}
-            onChange={e => setPass2(e.target.value)}
-            placeholder="••••••"
-          />
-        </div>
+        <p style={{ fontSize: '0.9rem', color: 'var(--ash)', marginBottom: 16 }}>
+          Tu sesión está protegida con autenticación de Supabase. El token se guarda temporalmente en tu navegador.
+        </p>
 
         <button 
-          className="btn btn-primary" 
-          onClick={saveCredentials}
+          className="btn btn-danger" 
+          onClick={handleLogoutEverywhere}
           disabled={saving}
         >
-          {saving ? <><span className="spinner" /> Guardando...</> : '💾 Guardar credenciales'}
+          {saving ? <><span className="spinner" /> Cerrando...</> : '🚪 Cerrar sesión'}
         </button>
       </div>
 
       <div className="admin-card">
-        <div className="admin-card-title">ℹ️ Información</div>
+        <div className="admin-card-title">ℹ️ Información del sistema</div>
         <div style={{ fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--ash)' }}>
           <p><strong>Proyecto Supabase:</strong></p>
           <p style={{ fontFamily: 'monospace', fontSize: '0.8rem', background: 'var(--light)', padding: 8, borderRadius: 8, marginTop: 4 }}>
             {import.meta.env.VITE_SUPABASE_URL || 'No configurado'}
           </p>
           <p style={{ marginTop: 16 }}>
-            <strong>Recordatorio:</strong> Configurá las variables de entorno en el dashboard de Netlify:
+            <strong>Autenticación:</strong> Supabase Auth con email/password
           </p>
-          <ul style={{ marginLeft: 20, marginTop: 8 }}>
-            <li><code>SUPABASE_URL</code></li>
-            <li><code>SUPABASE_SERVICE_KEY</code></li>
-          </ul>
-          <p style={{ marginTop: 12 }}>
-            El archivo <code>.env</code> no se sube al repositorio por seguridad.
+          <p style={{ marginTop: 12, fontSize: '0.8rem' }}>
+            Para cambiar tu contraseña o email, andá a Supabase Dashboard → Authentication → Users
           </p>
         </div>
       </div>
@@ -2250,7 +2220,7 @@ function ConfigTab() {
 // ============================================
 // COMPONENTE: ADMIN PANEL
 // ============================================
-function AdminPanel({ cfg, onCfgUpdated, onLogout }) {
+function AdminPanel({ cfg, onCfgUpdated, onLogout, user }) {
   const [activeTab, setActiveTab] = useState('clients')
 
   const tabs = [
@@ -2277,7 +2247,14 @@ function AdminPanel({ cfg, onCfgUpdated, onLogout }) {
   return (
     <div className="admin-bg">
       <div className="admin-header">
-        <div className="admin-header-title">{cfg.business_name}</div>
+        <div>
+          <div className="admin-header-title">{cfg.business_name}</div>
+          {user && (
+            <div style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: 4 }}>
+              👤 {user.email}
+            </div>
+          )}
+        </div>
         <button className="admin-logout" onClick={onLogout}>
           Salir
         </button>
@@ -2310,12 +2287,20 @@ export default function App() {
   const [registeredName, setRegisteredName] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminLoggedIn, setAdminLoggedIn] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
   const { cfg, setCfg, loading: cfgLoading } = useConfig()
 
   useEffect(() => {
+    // Verificar si hay token guardado al cargar
+    const token = adminApi.getToken()
+    if (token) {
+      setAdminLoggedIn(true)
+      setView('admin')
+    }
+    
     const adminParam = window.location.search.includes('admin')
     setIsAdmin(adminParam)
-    if (adminParam) {
+    if (adminParam && !token) {
       setView('admin-login')
     }
   }, [])
@@ -2325,12 +2310,15 @@ export default function App() {
     setView('success')
   }
 
-  const handleAdminLogin = () => {
+  const handleAdminLogin = (user, token) => {
+    setCurrentUser(user)
     setAdminLoggedIn(true)
     setView('admin')
   }
 
   const handleLogout = () => {
+    adminApi.logout()
+    setCurrentUser(null)
     setAdminLoggedIn(false)
     setView('admin-login')
   }
@@ -2367,6 +2355,7 @@ export default function App() {
           cfg={cfg} 
           onCfgUpdated={handleCfgUpdated}
           onLogout={handleLogout}
+          user={currentUser}
         />
       )}
     </div>

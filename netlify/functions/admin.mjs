@@ -1,21 +1,22 @@
 // netlify/functions/admin.mjs
 // Protege el SERVICE_KEY de Supabase - nunca llega al frontend
+// Ahora usa Supabase Auth con email/password y validación por UID
 
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  process.env.SUPABASE_SERVICE_KEY,
+  { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
 }
 
-// Simple rate limiting: almacenar intentos en memoria (se reinicia al redeploy)
-const loginAttempts = new Map()
+// Rate limiting persistente usando tabla en BD
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000 // 1 hora
 const MAX_ATTEMPTS = 5
 
@@ -23,20 +24,77 @@ function getClientIP(event) {
   return event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || 'unknown'
 }
 
-function checkRateLimit(ip) {
-  const now = Date.now()
-  const attempts = loginAttempts.get(ip) || []
+async function checkRateLimit(ip) {
+  const now = new Date().toISOString()
+  const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW).toISOString()
   
-  // Filtrar intentos fuera de la ventana de tiempo
-  const recentAttempts = attempts.filter(time => now - time < RATE_LIMIT_WINDOW)
+  // Contar intentos recientes desde la BD
+  const { count, error } = await supabaseAdmin
+    .from('login_attempts')
+    .select('*', { count: 'exact', head: true })
+    .eq('ip', ip)
+    .gte('attempted_at', windowStart)
   
-  if (recentAttempts.length >= MAX_ATTEMPTS) {
-    return false // Rate limit excedido
+  if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+    console.error('Error checking rate limit:', error)
+    return true // Permitir si hay error
   }
   
-  recentAttempts.push(now)
-  loginAttempts.set(ip, recentAttempts)
-  return true
+  return (count || 0) < MAX_ATTEMPTS
+}
+
+async function recordLoginAttempt(ip) {
+  await supabaseAdmin.from('login_attempts').insert({ ip })
+}
+
+async function clearLoginAttempts(ip) {
+  await supabaseAdmin.from('login_attempts').delete().eq('ip', ip)
+}
+
+// Verificar si el usuario autenticado es admin
+async function verifyAdminAuth(event) {
+  const authHeader = event.headers.authorization
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { valid: false, error: 'No token provided' }
+  }
+  
+  const token = authHeader.substring(7)
+  
+  // Verificar token con Supabase
+  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
+  
+  if (error || !user) {
+    return { valid: false, error: 'Invalid token' }
+  }
+  
+  // Verificar si el usuario está en la tabla admins
+  const { data: admin, error: adminError } = await supabaseAdmin
+    .from('admins')
+    .select('id, email')
+    .eq('id', user.id)
+    .single()
+  
+  if (adminError || !admin) {
+    return { valid: false, error: 'User is not an admin' }
+  }
+  
+  return { valid: true, userId: user.id, email: admin.email }
+}
+
+// Middleware para proteger endpoints que requieren autenticación
+async function requireAuth(event) {
+  const authResult = await verifyAdminAuth(event)
+  
+  if (!authResult.valid) {
+    return {
+      statusCode: 401,
+      headers: corsHeaders,
+      body: JSON.stringify({ error: authResult.error || 'Unauthorized' })
+    }
+  }
+  
+  return null // null significa que pasó la autenticación
 }
 
 export const handler = async (event, context) => {
@@ -47,12 +105,13 @@ export const handler = async (event, context) => {
   const path = event.path.replace('/api/admin/', '')
 
   try {
-    // AUTH: Verificar credenciales admin con rate limiting
+    // AUTH: Login con Supabase Auth (email/password)
     if (path === 'login') {
       const ip = getClientIP(event)
       
       // Verificar rate limit
-      if (!checkRateLimit(ip)) {
+      const rateOk = await checkRateLimit(ip)
+      if (!rateOk) {
         return {
           statusCode: 429,
           headers: corsHeaders,
@@ -63,31 +122,70 @@ export const handler = async (event, context) => {
         }
       }
       
-      const { user, password } = JSON.parse(event.body)
-      const { data, error } = await supabaseAdmin
-        .from('config')
-        .select('value')
-        .in('key', ['admin_user', 'admin_password'])
-
-      if (error) throw error
-
-      const cfg = {}
-      data.forEach(row => cfg[row.key] = row.value)
-
-      const valid = cfg.admin_user === user && cfg.admin_password === password
+      const { email, password } = JSON.parse(event.body)
       
-      // Si el login falla, el rate limit ya registró el intento
-      // Si tiene éxito, podríamos limpiar los intentos para esta IP
-      if (valid) {
-        loginAttempts.delete(ip) // Limpiar intentos tras login exitoso
+      // Validar email básico
+      if (!email || !email.includes('@')) {
+        await recordLoginAttempt(ip)
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({ success: false, error: 'Email inválido' })
+        }
       }
+      
+      // Intentar login con Supabase Auth
+      const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+        email: email.trim(),
+        password
+      })
+      
+      if (error) {
+        await recordLoginAttempt(ip)
+        console.error('Login error:', error.message)
+        return {
+          statusCode: 401,
+          headers: corsHeaders,
+          body: JSON.stringify({ success: false, error: 'Email o contraseña incorrectos' })
+        }
+      }
+      
+      // Verificar si el usuario es admin
+      const { data: adminRecord } = await supabaseAdmin
+        .from('admins')
+        .select('id, email')
+        .eq('id', data.user.id)
+        .single()
+      
+      if (!adminRecord) {
+        await recordLoginAttempt(ip)
+        return {
+          statusCode: 403,
+          headers: corsHeaders,
+          body: JSON.stringify({ success: false, error: 'Este usuario no tiene permisos de administrador' })
+        }
+      }
+      
+      // Login exitoso - limpiar intentos y devolver token
+      await clearLoginAttempts(ip)
       
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: JSON.stringify({ success: valid })
+        body: JSON.stringify({ 
+          success: true,
+          user: {
+            id: data.user.id,
+            email: data.user.email
+          },
+          token: data.session.access_token
+        })
       }
     }
+
+    // Para todos los demás endpoints, verificar autenticación
+    const authResult = await requireAuth(event)
+    if (authResult) return authResult
 
     // GET: Clientes (todos, no solo públicos)
     if (path === 'clients') {
@@ -261,6 +359,7 @@ export const handler = async (event, context) => {
     }
 
   } catch (err) {
+    console.error('Handler error:', err)
     return {
       statusCode: 500,
       headers: corsHeaders,
