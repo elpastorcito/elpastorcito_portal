@@ -42,7 +42,10 @@ export function useConfig() {
       data.forEach(row => { newCfg[row.key] = row.value })
       setCfg(newCfg)
     } catch (e) {
-      // Silencioso: usa config por defecto si no hay datos
+      // Log error in development mode for debugging
+      if (import.meta.env.DEV) {
+        console.warn('Failed to load config, using defaults:', e.message)
+      }
     } finally {
       setLoading(false)
     }

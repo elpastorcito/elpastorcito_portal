@@ -141,7 +141,11 @@ export const adminApi = {
       reader.readAsDataURL(file)
     })
 
-    console.log('Uploading image:', { filePath, type: file.type, size: file.size })
+    const isDevelopment = import.meta.env.DEV
+    
+    if (isDevelopment) {
+      console.log('Uploading image:', { filePath, type: file.type, size: file.size })
+    }
 
     const res = await fetch('/api/admin/upload', {
       method: 'POST',
@@ -158,7 +162,9 @@ export const adminApi = {
     
     if (!res.ok) {
       const errorData = await res.json()
-      console.error('Upload failed:', errorData)
+      if (isDevelopment) {
+        console.error('Upload failed:', errorData)
+      }
       throw new Error(errorData.error || 'Error al subir la imagen')
     }
     
