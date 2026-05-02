@@ -1,6 +1,8 @@
 -- ============================================
 -- EL PASTORCITO PARRIPOLLO - SUPABASE SETUP
 -- ============================================
+-- Este script configura toda la base de datos necesaria para el portal WiFi.
+-- Ejecutar en el SQL Editor de Supabase.
 
 -- 1. Tabla de clientes
 CREATE TABLE IF NOT EXISTS clients (
@@ -120,6 +122,12 @@ CREATE POLICY "Allow public read config" ON config
 -- ============================================
 -- STORAGE BUCKET
 -- ============================================
--- Crear bucket 'images' desde la UI de Supabase Storage
--- Configurar como público y permitir uploads anonimos para la carpeta menu/
--- O crear políticas de storage apropiadas
+-- IMPORTANTE: El nombre del bucket debe ser 'Images' (con 'I' mayúscula)
+-- 1. Ir a Supabase Dashboard → Storage
+-- 2. Click en "New bucket"
+-- 3. Nombre: Images (exactamente así, con I mayúscula)
+-- 4. Marcar como público
+-- 5. Click en "Create bucket"
+-- 6. Luego ir a Policies y agregar:
+--    - Policy para anon: SELECT (read)
+--    - Policy para service_role: ALL (full access)

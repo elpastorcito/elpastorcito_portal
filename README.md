@@ -13,8 +13,8 @@ Captive portal WiFi con panel de administración para restaurantes.
 1. Crear proyecto en [supabase.com](https://supabase.com)
 2. Ir a SQL Editor → New query
 3. Pegar todo el contenido de `supabase-setup.sql` y ejecutar
-4. Ir a Storage → New bucket → Crear `images` como **público**
-5. En Storage → Policies → Add policies para `images`:
+4. Ir a Storage → New bucket → Crear `Images` como **público** (importante: la 'I' debe ser mayúscula)
+5. En Storage → Policies → Add policies para `Images`:
    - `anon` puede: `SELECT` (read)
    - `service_role` puede: `ALL` (full access)
 
@@ -49,10 +49,24 @@ Subir a Netlify:
 - **Admin panel**: `https://tu-site.netlify.app?admin`
 
 ## 🔐 Primer acceso admin
-- Usuario: `admin`
-- Contraseña: `admin123`
 
-Cambiar desde el tab **⚙️ Config** del panel admin.
+El sistema ahora usa **Supabase Auth** para autenticación segura.
+
+### Configurar tu usuario admin:
+
+1. Ir a Supabase Dashboard → Authentication → Users
+2. Click en "Add user" y crear un usuario con email y contraseña segura
+3. Copiar el UID del usuario creado
+4. Ejecutar este SQL en Supabase SQL Editor:
+
+```sql
+INSERT INTO admins (id, email) 
+VALUES ('PEGAR_AQUI_EL_UID', 'tu_email@ejemplo.com');
+```
+
+5. Usar ese email y contraseña para ingresar al panel admin
+
+> ⚠️ **IMPORTANTE**: El sistema legacy con `admin`/`admin123` ya no funciona. Ahora se requiere configurar un usuario real en Supabase Auth.
 
 ## 📁 Estructura
 ```
@@ -81,7 +95,7 @@ pastorcito-portal/
 
 3. **PWA**: Agregá iconos reales en `public/icon-192.png` y `public/icon-512.png` para que funcione como app instalable.
 
-4. **Imágenes**: Las imágenes se suben a Supabase Storage bucket `images`.
+4. **Imágenes**: Las imágenes se suben a Supabase Storage bucket `Images` (con 'I' mayúscula).
 
 ## 🎨 Personalización
 Todo es configurable desde el panel admin (tab **🎨 Apariencia**):

@@ -25,7 +25,10 @@ export function SuccessScreen({ name, cfg }) {
       if (menuData) setMenu(menuData)
       if (socialsData) setSocials(socialsData)
     } catch (e) {
-      // Error silencioso en pantalla de éxito
+      // Log error en desarrollo para debugging
+      if (import.meta.env.DEV) {
+        console.warn('Error loading data in SuccessScreen:', e.message)
+      }
     }
   }
 
