@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { SocialIcon } from './SocialIcon'
+import { supabase } from '../supabase.js'
 import { Flames } from './Flames'
 import { TermsModal } from './TermsModal'
-import { fmtPrice, getFirstName } from '../utils/formatters'
 
 // ============================================
-// COMPONENTE: PORTAL
+// COMPONENTE: PORTAL (Registro)
 // ============================================
 export function Portal({ cfg, onRegister }) {
   const [form, setForm] = useState({ name: '', phone: '', email: '', terms: false })
@@ -13,7 +12,7 @@ export function Portal({ cfg, onRegister }) {
   const [loading, setLoading] = useState(false)
   const [showTerms, setShowTerms] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  
+
   const validate = () => {
     const errs = {}
     if (!form.name.trim()) errs.name = 'Ingresá tu nombre'
@@ -27,7 +26,7 @@ export function Portal({ cfg, onRegister }) {
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSubmitError('')
@@ -46,6 +45,7 @@ export function Portal({ cfg, onRegister }) {
       onRegister(form.name.trim())
     } catch (err) {
       setSubmitError('Error al registrarse. Intentá de nuevo.')
+      // Error ya manejado en UI
     } finally {
       setLoading(false)
     }
