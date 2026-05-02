@@ -133,11 +133,15 @@ export const adminApi = {
   },
 
   async uploadImage(filePath, file) {
-    const base64 = await new Promise((resolve) => {
+    // Convertir archivo a base64 completo (con data URL prefix)
+    const base64 = await new Promise((resolve, reject) => {
       const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result.split(',')[1])
+      reader.onloadend = () => resolve(reader.result) // Mantener el prefix "data:image/..."
+      reader.onerror = () => reject(new Error('Error al leer el archivo'))
       reader.readAsDataURL(file)
     })
+
+    console.log('Uploading image:', { filePath, type: file.type, size: file.size })
 
     const res = await fetch('/api/admin/upload', {
       method: 'POST',
@@ -151,6 +155,13 @@ export const adminApi = {
         base64Data: base64
       })
     })
+    
+    if (!res.ok) {
+      const errorData = await res.json()
+      console.error('Upload failed:', errorData)
+      throw new Error(errorData.error || 'Error al subir la imagen')
+    }
+    
     return res.json()
   }
 }

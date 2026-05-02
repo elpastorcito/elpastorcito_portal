@@ -340,68 +340,122 @@ export const handler = async (event, context) => {
     }
     // POST: Upload image (logo o menu)
     if (path === 'upload') {
-      const { filePath, contentType, base64Data } = JSON.parse(event.body)
-      
-      // Validar que los datos requeridos existan
-      if (!base64Data || !contentType) {
-        return {
-          statusCode: 400,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: 'Datos de imagen inválidos' })
-        }
-      }
-      
-      // Validar tamaño máximo (10MB en base64 ≈ 13.3MB string)
-      const MAX_SIZE_MB = 10
-      const maxSizeBytes = MAX_SIZE_MB * 1024 * 1024
-      const base64DataSize = Buffer.byteLength(base64Data, 'base64')
-      
-      if (base64DataSize > maxSizeBytes) {
-        return {
-          statusCode: 400,
-          headers: corsHeaders,
-          body: JSON.stringify({ 
-            error: `Imagen demasiado grande. Máximo ${MAX_SIZE_MB}MB`,
-            size: Math.round(base64DataSize / 1024 / 1024 * 100) / 100 + 'MB',
-            max: MAX_SIZE_MB + 'MB'
-          })
-        }
-      }
-      
-      // Validar tipo de contenido
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-      if (!allowedTypes.includes(contentType)) {
-        return {
-          statusCode: 400,
-          headers: corsHeaders,
-          body: JSON.stringify({ 
-            error: 'Tipo de archivo no permitido. Solo JPEG, PNG, WebP o GIF',
-            type: contentType
-          })
-        }
-      }
-      
-      const buffer = Buffer.from(base64Data, 'base64')
-
-      const { error } = await supabaseAdmin
-        .storage
-        .from('images')
-        .upload(filePath, buffer, {
-          contentType,
-          upsert: true
+      try {
+        const { filePath, contentType, base64Data } = JSON.parse(event.body)
+        
+        console.log('Upload request received:', { 
+          filePath, 
+          contentType, 
+          dataLength: base64Data?.length || 0 
         })
+        
+        // Validar que los datos requeridos existan
+        if (!base64Data || !contentType || !filePath) {
+          console.error('Missing required fields for upload')
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ error: 'Datos de imagen inválidos. Faltan campos requeridos.' })
+          }
+        }
+        
+        // Validar tipo de contenido PRIMERO (más rápido)
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+        if (!allowedTypes.includes(contentType)) {
+          console.error('Invalid content type:', contentType)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              error: 'Tipo de archivo no permitido. Solo JPEG, PNG, WebP o GIF',
+              type: contentType
+            })
+          }
+        }
+        
+        // Validar tamaño máximo (5MB para evitar timeouts)
+        const MAX_SIZE_MB = 5
+        const maxSizeBytes = MAX_SIZE_MB * 1024 * 1024
+        
+        // Calcular tamaño real del buffer
+        let buffer
+        try {
+          // Remover data URL prefix si existe (ej: "data:image/png;base64,")
+          const cleanBase64 = base64Data.split(',').pop()
+          buffer = Buffer.from(cleanBase64, 'base64')
+        } catch (bufferError) {
+          console.error('Error creating buffer:', bufferError)
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ error: 'Datos de imagen corruptos o inválidos' })
+          }
+        }
+        
+        const actualSizeBytes = buffer.length
+        
+        console.log('Image size check:', { 
+          actual: Math.round(actualSizeBytes / 1024 * 100) / 100 + 'KB',
+          max: MAX_SIZE_MB + 'MB'
+        })
+        
+        if (actualSizeBytes > maxSizeBytes) {
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+              error: `Imagen demasiado grande. Máximo ${MAX_SIZE_MB}MB`,
+              size: Math.round(actualSizeBytes / 1024 / 1024 * 100) / 100 + 'MB',
+              max: MAX_SIZE_MB + 'MB'
+            })
+          }
+        }
+        
+        console.log('Uploading to storage:', filePath)
+        
+        const { error: uploadError } = await supabaseAdmin
+          .storage
+          .from('images')
+          .upload(filePath, buffer, {
+            contentType,
+            upsert: true,
+            cacheControl: '3600'
+          })
 
-      if (error) throw error
+        if (uploadError) {
+          console.error('Supabase storage error:', uploadError)
+          throw uploadError
+        }
+        
+        console.log('Upload successful, getting public URL')
 
-      const { data: { publicUrl } } = supabaseAdmin
-        .storage
-        .from('images')
-        .getPublicUrl(filePath)
+        const { data: { publicUrl } } = supabaseAdmin
+          .storage
+          .from('images')
+          .getPublicUrl(filePath)
+          
+        console.log('Upload complete:', publicUrl)
 
-      return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify({ url: publicUrl })
+        return {
+          statusCode: 200,
+          headers: corsHeaders,
+          body: JSON.stringify({ url: publicUrl })
+        }
+      } catch (uploadError) {
+        console.error('Detailed upload error:', {
+          message: uploadError.message,
+          stack: uploadError.stack,
+          name: uploadError.name
+        })
+        return {
+          statusCode: 500,
+          headers: corsHeaders,
+          body: JSON.stringify({ 
+            error: 'Error al subir la imagen',
+            details: uploadError.message,
+            type: uploadError.name
+          })
+        }
       }
     }
 
