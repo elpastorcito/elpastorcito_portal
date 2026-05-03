@@ -26,7 +26,7 @@ const ALLOWED_ORIGINS = [
 const COOKIE_OPTIONS = {
   httpOnly: true,      // No accesible desde JavaScript (protege contra XSS)
   secure: true,        // Solo HTTPS en producción
-  sameSite: 'strict',  // Protege contra CSRF
+  sameSite: 'lax',  // Protege contra CSRF
   path: '/',
   maxAge: 60 * 60      // 1 hora de sesión
 }
