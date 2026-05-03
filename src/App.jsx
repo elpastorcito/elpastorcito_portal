@@ -20,16 +20,27 @@ export default function App() {
   const { cfg, setCfg, loading: cfgLoading } = useConfig()
 
   useEffect(() => {
-    // Verificar si hay token guardado al cargar
-    const token = adminApi.getToken()
-    if (token) {
-      setAdminLoggedIn(true)
-      setView('admin')
+    // Verificar sesión al cargar - ahora con cookies HTTP-only no hay token en JS
+    // La verificación se hace automáticamente en las solicitudes al backend
+    const checkSession = async () => {
+      try {
+        // Intentar obtener config para verificar si la sesión es válida
+        const config = await adminApi.getConfigAll()
+        if (config && !config.error) {
+          setAdminLoggedIn(true)
+          setView('admin')
+        }
+      } catch (err) {
+        // Sesión inválida o expirada
+        console.log('No hay sesión activa')
+      }
     }
+    
+    checkSession()
     
     const adminParam = window.location.search.includes('admin')
     setIsAdmin(adminParam)
-    if (adminParam && !token) {
+    if (adminParam && !adminLoggedIn) {
       setView('admin-login')
     }
   }, [])

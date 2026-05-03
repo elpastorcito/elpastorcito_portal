@@ -2,6 +2,7 @@
 // Protege el SERVICE_KEY de Supabase - nunca llega al frontend
 // Ahora usa Supabase Auth con email/password y validación por UID
 // MEJORA DE SEGURIDAD: Validación estricta con Zod
+// MEJORA DE SEGURIDAD: Cookies HTTP-only para proteger tokens XSS
 
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
@@ -20,12 +21,22 @@ const ALLOWED_ORIGINS = [
   'http://localhost:8888'
 ].filter(Boolean)
 
+// Configuración de cookies seguras
+const COOKIE_OPTIONS = {
+  httpOnly: true,      // No accesible desde JavaScript (protege contra XSS)
+  secure: true,        // Solo HTTPS en producción
+  sameSite: 'strict',  // Protege contra CSRF
+  path: '/',
+  maxAge: 60 * 60      // 1 hora de sesión
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN && ALLOWED_ORIGINS.includes(process.env.ALLOWED_ORIGIN) 
     ? process.env.ALLOWED_ORIGIN 
     : ALLOWED_ORIGINS[0],
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Allow-Credentials': 'true',  // Permitir cookies
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'X-XSS-Protection': '1; mode=block',
@@ -142,13 +153,27 @@ async function clearLoginAttempts(ip) {
 
 // Verificar si el usuario autenticado es admin
 async function verifyAdminAuth(event) {
-  const authHeader = event.headers.authorization
+  // Primero intentar obtener token desde cookie HTTP-only
+  let token = null
   
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { valid: false, error: 'No token provided' }
+  const authHeader = event.headers.authorization
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7)
+  } else {
+    // Extraer token de las cookies
+    const cookieHeader = event.headers.cookie
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').map(c => c.trim())
+      const adminCookie = cookies.find(c => c.startsWith('admin_token='))
+      if (adminCookie) {
+        token = adminCookie.split('=')[1]
+      }
+    }
   }
   
-  const token = authHeader.substring(7)
+  if (!token) {
+    return { valid: false, error: 'No token provided' }
+  }
   
   // Verificar token con Supabase
   const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
@@ -279,19 +304,25 @@ export const handler = async (event, context) => {
         }
       }
       
-      // Login exitoso - limpiar intentos y devolver token
+      // Login exitoso - limpiar intentos y devolver token con cookie HTTP-only
       await clearLoginAttempts(ip)
+      
+      // Crear headers para Set-Cookie con opciones seguras
+      const setCookieHeader = `admin_token=${data.session.access_token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`
       
       return {
         statusCode: 200,
-        headers: corsHeaders,
+        headers: {
+          ...corsHeaders,
+          'Set-Cookie': setCookieHeader
+        },
         body: JSON.stringify({ 
           success: true,
           user: {
             id: data.user.id,
             email: data.user.email
-          },
-          token: data.session.access_token
+          }
+          // NOTA: El token ahora se envía en cookie HTTP-only, no en el body
         })
       }
     }
@@ -718,6 +749,20 @@ export const handler = async (event, context) => {
             // NO exponer detalles internos al cliente
           })
         }
+      }
+    }
+
+    // POST: Logout - limpiar cookie HTTP-only
+    if (path === 'logout') {
+      const clearCookieHeader = 'admin_token=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0'
+      
+      return {
+        statusCode: 200,
+        headers: {
+          ...corsHeaders,
+          'Set-Cookie': clearCookieHeader
+        },
+        body: JSON.stringify({ success: true })
       }
     }
 

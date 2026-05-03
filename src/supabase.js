@@ -11,85 +11,76 @@ if (!URL || !ANON_KEY) {
 export const supabase = createClient(URL, ANON_KEY)
 
 // Admin API wrapper - usa Netlify Functions con autenticación por token JWT
-// ⚠️ ADVERTENCIA DE SEGURIDAD: sessionStorage es vulnerable a XSS
-// TODO: Migrar a cookies HTTP-only en producción para mayor protección
+// MEJORA DE SEGURIDAD: Cookies HTTP-only para proteger contra XSS
+// El token se almacena en cookie HTTP-only en lugar de sessionStorage
 export const adminApi = {
-  // Token se guarda en sessionStorage (vulnerable a XSS - mejorar en el futuro)
+  // Token se obtiene automáticamente desde cookies en las solicitudes
+  // No es accesible desde JavaScript (protección XSS)
   getToken() {
-    try {
-      return sessionStorage.getItem('admin_token')
-    } catch (e) {
-      console.error('Error accessing sessionStorage:', e)
-      return null
-    }
+    // NOTA: Con cookies HTTP-only, el token NO es accesible desde JS
+    // La autenticación se maneja automáticamente mediante cookies
+    return null
   },
 
   setToken(token) {
-    try {
-      // Validar que el token tenga formato JWT básico antes de guardar
-      if (!token || typeof token !== 'string' || !token.includes('.')) {
-        console.warn('Invalid token format')
-        return false
-      }
-      sessionStorage.setItem('admin_token', token)
-      return true
-    } catch (e) {
-      console.error('Error saving token to sessionStorage:', e)
-      return false
-    }
+    // NOTA: Con cookies HTTP-only, el token se establece vía header Set-Cookie
+    // desde el backend, no desde el frontend
+    console.warn('setToken() está obsoleto - usar login() que establece cookie HTTP-only')
+    return false
   },
 
   clearToken() {
-    try {
-      sessionStorage.removeItem('admin_token')
-    } catch (e) {
-      console.error('Error clearing token from sessionStorage:', e)
-    }
+    // NOTA: Con cookies HTTP-only, la limpieza se hace vía backend logout
+    console.warn('clearToken() está obsoleto - usar logout() que limpia cookie HTTP-only')
   },
 
   async login(email, password) {
     const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password }),
+      credentials: 'include'  // Incluir cookies en la solicitud
     })
     const data = await res.json()
     
-    if (data.success && data.token) {
-      this.setToken(data.token)
-    }
+    // El token se guarda automáticamente en cookie HTTP-only por el backend
+    // No necesitamos guardarlo manualmente
     
     return data
   },
 
-  logout() {
-    this.clearToken()
+  async logout() {
+    // Llamar al endpoint de logout para limpiar la cookie HTTP-only
+    await fetch('/api/admin/logout', {
+      method: 'POST',
+      credentials: 'include'  // Incluir cookies
+    })
   },
 
   async getClients() {
     const res = await fetch('/api/admin/clients', {
-      headers: { 'Authorization': `Bearer ${this.getToken()}` }
+      credentials: 'include'  // Las cookies se envían automáticamente
     })
     return res.json()
   },
 
   async getSocialsAll() {
     const res = await fetch('/api/admin/socials-all', {
-      headers: { 'Authorization': `Bearer ${this.getToken()}` }
+      credentials: 'include'
     })
     return res.json()
   },
 
   async getMenuAll() {
     const res = await fetch('/api/admin/menu-all', {
-      headers: { 'Authorization': `Bearer ${this.getToken()}` }
+      credentials: 'include'
     })
     return res.json()
   },
 
   async getConfigAll() {
     const res = await fetch('/api/admin/config-all', {
-      headers: { 'Authorization': `Bearer ${this.getToken()}` }
+      credentials: 'include'
     })
     return res.json()
   },
@@ -97,10 +88,8 @@ export const adminApi = {
   async saveConfig(items) {
     const res = await fetch('/api/admin/config-save', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getToken()}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ items })
     })
     return res.json()
@@ -109,10 +98,8 @@ export const adminApi = {
   async saveSocials(networks) {
     const res = await fetch('/api/admin/socials-save', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getToken()}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ networks })
     })
     return res.json()
@@ -121,10 +108,8 @@ export const adminApi = {
   async toggleMenuItem(id, available) {
     const res = await fetch('/api/admin/menu-toggle', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getToken()}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ id, available })
     })
     return res.json()
@@ -133,10 +118,8 @@ export const adminApi = {
   async deleteMenuItem(id) {
     const res = await fetch('/api/admin/menu-delete', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getToken()}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ id })
     })
     return res.json()
@@ -145,10 +128,8 @@ export const adminApi = {
   async saveMenuItem(item) {
     const res = await fetch('/api/admin/menu-save', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getToken()}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ item })
     })
     return res.json()
@@ -173,8 +154,8 @@ export const adminApi = {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.getToken()}`
       },
+      credentials: 'include',
       body: JSON.stringify({
         filePath,
         contentType: file.type,
