@@ -24,9 +24,9 @@ export function AdminLogin({ onLogin }) {
         return
       }
 
-      // Validar password
-      if (!password || password.length < 6) {
-        setError('La contraseña debe tener al menos 6 caracteres')
+      // Validar password (mínimo 8 caracteres para coincidir con backend)
+      if (!password || password.length < 8) {
+        setError('La contraseña debe tener al menos 8 caracteres')
         setLoading(false)
         return
       }
