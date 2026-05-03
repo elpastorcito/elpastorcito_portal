@@ -15,6 +15,7 @@ const supabaseAdmin = createClient(
 
 // Lista blanca de orígenes permitidos (CORS)
 const ALLOWED_ORIGINS = [
+  'https://elpastorcito-portal.netlify.app',
   'https://tu-dominio-production.netlify.app',
   'https://tu-dominio-staging.netlify.app',
   'http://localhost:5173',
