@@ -1,13 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { ClientsTab } from './tabs/ClientsTab.jsx'
 import { StatsTab } from './tabs/StatsTab.jsx'
 import { MenuTab } from './tabs/MenuTab.jsx'
 import { SocialsTab } from './tabs/SocialsTab.jsx'
 import { AppearanceTab } from './tabs/AppearanceTab.jsx'
 import { ConfigTab } from './tabs/ConfigTab.jsx'
+import { useSessionTimeout } from '../hooks/useSessionTimeout'
 
 export function AdminPanel({ cfg, onCfgUpdated, onLogout, user }) {
   const [activeTab, setActiveTab] = useState('clients')
+  
+  // Timeout de sesión: 30 minutos de inactividad
+  const handleSessionTimeout = useCallback(() => {
+    console.log('Cerrando sesión por timeout')
+    onLogout()
+  }, [onLogout])
+  
+  useSessionTimeout(30 * 60 * 1000, handleSessionTimeout)
 
   const tabs = [
     { id: 'clients', label: '👥 Clientes' },

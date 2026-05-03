@@ -16,11 +16,14 @@ export function Portal({ cfg, onRegister }) {
   const validate = () => {
     const errs = {}
     if (!form.name.trim()) errs.name = 'Ingresá tu nombre'
+    else if (form.name.trim().length > 100) errs.name = 'El nombre no puede superar los 100 caracteres'
     if (!/^\d{8,15}$/.test(form.phone.replace(/\s/g, ''))) {
       errs.phone = 'Teléfono inválido (solo números, 8-15 dígitos)'
     }
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errs.email = 'Email inválido'
+    } else if (form.email && form.email.length > 254) {
+      errs.email = 'El email no puede superar los 254 caracteres'
     }
     if (!form.terms) errs.terms = 'Debés aceptar los términos'
     setErrors(errs)
