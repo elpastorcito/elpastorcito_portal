@@ -8,7 +8,14 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
     slogan: cfg.slogan,
     logo_url: cfg.logo_url,
     color_primary: cfg.color_primary,
-    color_secondary: cfg.color_secondary
+    color_secondary: cfg.color_secondary,
+    favicon_16: cfg.favicon_16 || '',
+    favicon_32: cfg.favicon_32 || '',
+    favicon_48: cfg.favicon_48 || '',
+    favicon_64: cfg.favicon_64 || '',
+    favicon_128: cfg.favicon_128 || '',
+    favicon_192: cfg.favicon_192 || '',
+    favicon_512: cfg.favicon_512 || ''
   })
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -20,7 +27,14 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
       slogan: cfg.slogan,
       logo_url: cfg.logo_url,
       color_primary: cfg.color_primary,
-      color_secondary: cfg.color_secondary
+      color_secondary: cfg.color_secondary,
+      favicon_16: cfg.favicon_16 || '',
+      favicon_32: cfg.favicon_32 || '',
+      favicon_48: cfg.favicon_48 || '',
+      favicon_64: cfg.favicon_64 || '',
+      favicon_128: cfg.favicon_128 || '',
+      favicon_192: cfg.favicon_192 || '',
+      favicon_512: cfg.favicon_512 || ''
     })
   }, [cfg])
 
@@ -42,6 +56,24 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
     }
   }
 
+  async function handleFaviconUpload(e, size) {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `favicons/favicon_${size}.${ext}`
+      const result = await adminApi.uploadImage(path, file)
+      const urlWithCache = `${result.url}?v=${Date.now()}`
+      setForm({ ...form, [`favicon_${size}`]: urlWithCache })
+      showToast(`Favicon ${size}x${size} subido`)
+    } catch (err) {
+      showToast('Error al subir favicon')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   async function saveAppearance() {
     setSaving(true)
     try {
@@ -50,7 +82,14 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
         { key: 'slogan', value: form.slogan },
         { key: 'logo_url', value: form.logo_url },
         { key: 'color_primary', value: form.color_primary },
-        { key: 'color_secondary', value: form.color_secondary }
+        { key: 'color_secondary', value: form.color_secondary },
+        { key: 'favicon_16', value: form.favicon_16 },
+        { key: 'favicon_32', value: form.favicon_32 },
+        { key: 'favicon_48', value: form.favicon_48 },
+        { key: 'favicon_64', value: form.favicon_64 },
+        { key: 'favicon_128', value: form.favicon_128 },
+        { key: 'favicon_192', value: form.favicon_192 },
+        { key: 'favicon_512', value: form.favicon_512 }
       ]
       await adminApi.saveConfig(items)
       onCfgUpdated({ ...form })
@@ -173,6 +212,104 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
           {saving ? <><span className="spinner" /> Guardando...</> : '💾 Guardar apariencia'}
         </button>
       </div>
+
+      {/* Sección de Favicon */}
+      <div className="admin-card" style={{ gridColumn: '1 / -1' }}>
+        <div className="admin-card-title">🔖 Favicons - Tamaños Múltiples</div>
+        
+        <div style={{ 
+          background: 'rgba(255, 165, 0, 0.1)', 
+          border: '2px dashed #FFA500', 
+          borderRadius: 12, 
+          padding: 16, 
+          marginBottom: 20 
+        }}>
+          <div style={{ fontWeight: 700, color: '#FFA500', marginBottom: 8 }}>
+            📏 Guía de tamaños de favicon
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 20, fontSize: '0.85rem', color: 'var(--ash)', lineHeight: 1.6 }}>
+            <li><strong>16x16 px</strong> - Navegadores de escritorio (pestañas)</li>
+            <li><strong>32x32 px</strong> - Navegadores modernos y alta densidad</li>
+            <li><strong>48x48 px</strong> - Windows shortcut icons</li>
+            <li><strong>64x64 px</strong> - Pantallas de alta resolución</li>
+            <li><strong>128x128 px</strong> - Chrome Web Store</li>
+            <li><strong>192x192 px</strong> - Android home screen (PWA)</li>
+            <li><strong>512x512 px</strong> - PWA splash screen y manifest</li>
+          </ul>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+          {[
+            { size: 16, label: '16x16 px - Escritorio' },
+            { size: 32, label: '32x32 px - Moderno' },
+            { size: 48, label: '48x48 px - Windows' },
+            { size: 64, label: '64x64 px - HD' },
+            { size: 128, label: '128x128 px - Chrome Store' },
+            { size: 192, label: '192x192 px - Android' },
+            { size: 512, label: '512x512 px - PWA' }
+          ].map(({ size, label }) => (
+            <div key={size} style={{ 
+              background: 'var(--light)', 
+              borderRadius: 12, 
+              padding: 16,
+              border: form[`favicon_${size}`] ? '2px solid var(--primary)' : '2px solid transparent'
+            }}>
+              <div style={{ fontWeight: 700, marginBottom: 8, fontSize: '0.9rem' }}>{label}</div>
+              
+              <div style={{ 
+                height: 80, 
+                background: '#fff', 
+                borderRadius: 8, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                marginBottom: 12,
+                overflow: 'hidden',
+                border: '1px solid #ddd'
+              }}>
+                {form[`favicon_${size}`] ? (
+                  <img 
+                    src={form[`favicon_${size}`]} 
+                    alt={`Favicon ${size}x${size}`} 
+                    style={{ 
+                      width: Math.min(size, 64), 
+                      height: Math.min(size, 64), 
+                      objectFit: 'contain' 
+                    }} 
+                  />
+                ) : (
+                  <span style={{ fontSize: 24, opacity: 0.5 }}>🔖</span>
+                )}
+              </div>
+
+              <div className="upload-area" onClick={() => document.getElementById(`favicon-${size}-input`).click()} style={{ padding: '8px 0' }}>
+                <div style={{ fontSize: 20, marginBottom: 4 }}>📷</div>
+                <div style={{ fontWeight: 600, color: 'var(--ash)', fontSize: '0.8rem' }}>
+                  {uploading ? 'Subiendo...' : 'Cambiar'}
+                </div>
+              </div>
+              <input 
+                id={`favicon-${size}-input`} 
+                type="file" 
+                accept="image/*" 
+                style={{ display: 'none' }}
+                onChange={(e) => handleFaviconUpload(e, size)}
+              />
+
+              {form[`favicon_${size}`] && (
+                <button 
+                  className="btn btn-danger btn-sm" 
+                  style={{ marginTop: 8, width: '100%', fontSize: '0.75rem' }}
+                  onClick={() => setForm({ ...form, [`favicon_${size}`]: '' })}
+                >
+                  🗑 Quitar
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {toast && <div className="toast">{toast}</div>}
     </div>
   )

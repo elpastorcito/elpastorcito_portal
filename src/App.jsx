@@ -19,6 +19,50 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null)
   const { cfg, setCfg, loading: cfgLoading } = useConfig()
 
+  // Efecto para actualizar los favicons dinámicamente cuando cambia la configuración
+  useEffect(() => {
+    // Eliminar favicons anteriores
+    const existingFavicons = document.querySelectorAll('link[rel*="icon"]')
+    existingFavicons.forEach(link => {
+      if (link.getAttribute('href') !== 'data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'.9em\' font-size=\'90\'>🐓</text></svg>') {
+        link.remove()
+      }
+    })
+
+    // Agregar nuevos favicons desde la configuración
+    const faviconSizes = [
+      { size: 16, rel: 'icon' },
+      { size: 32, rel: 'icon' },
+      { size: 48, rel: 'icon' },
+      { size: 64, rel: 'icon' },
+      { size: 128, rel: 'icon' },
+      { size: 192, rel: 'apple-touch-icon' },
+      { size: 512, rel: 'apple-touch-icon' }
+    ]
+
+    faviconSizes.forEach(({ size, rel }) => {
+      const url = cfg[`favicon_${size}`]
+      if (url) {
+        const link = document.createElement('link')
+        link.rel = rel
+        link.sizes = `${size}x${size}`
+        link.href = url
+        document.head.appendChild(link)
+      }
+    })
+
+    // Si no hay favicons configurados, usar el emoji por defecto
+    if (!cfg.favicon_16 && !cfg.favicon_32 && !cfg.favicon_48 && !cfg.favicon_64 && !cfg.favicon_128 && !cfg.favicon_192 && !cfg.favicon_512) {
+      const defaultLink = document.querySelector('link[rel="icon"][href*="svg+xml"]')
+      if (!defaultLink) {
+        const link = document.createElement('link')
+        link.rel = 'icon'
+        link.href = 'data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'.9em\' font-size=\'90\'>🐓</text></svg>'
+        document.head.appendChild(link)
+      }
+    }
+  }, [cfg])
+
   useEffect(() => {
     // Verificar sesión al cargar - ahora con cookies HTTP-only no hay token en JS
     // La verificación se hace automáticamente en las solicitudes al backend
