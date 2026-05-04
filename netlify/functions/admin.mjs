@@ -625,7 +625,7 @@ export const handler = async (event, context) => {
         // 1. Remover cualquier intento de navegación hacia atrás
         const sanitizedPath = filePath.replace(/\.\.\//g, '').replace(/\.\.\\/g, '')
         // 2. Asegurar que el path comience con el directorio esperado
-        const allowedPrefixes = ['logos/', 'menu/']
+        const allowedPrefixes = ['logos/', 'menu/', 'favicons/']
         const hasValidPrefix = allowedPrefixes.some(prefix => sanitizedPath.startsWith(prefix))
         
         if (!hasValidPrefix) {
@@ -634,7 +634,7 @@ export const handler = async (event, context) => {
             statusCode: 400,
             headers: corsHeaders,
             body: JSON.stringify({ 
-              error: 'Ruta de archivo inválida. Debe comenzar con "logos/" o "menu/"',
+              error: 'Ruta de archivo inválida. Debe comenzar con "logos/", "menu/" o "favicons/"',
               provided: filePath
             })
           }
