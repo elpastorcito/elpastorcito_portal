@@ -387,7 +387,7 @@ export function buildStyles(cfg) {
       border-radius: 3px;
     }
 
-    .menu-card {
+    .menu-card-old {
       flex: 0 0 160px;
       background: ${cream};
       border-radius: 20px;
@@ -396,7 +396,7 @@ export function buildStyles(cfg) {
       scroll-snap-align: start;
     }
 
-    .menu-card-img {
+    .menu-card-img-old {
       width: 160px;
       height: 120px;
       object-fit: cover;
@@ -407,11 +407,11 @@ export function buildStyles(cfg) {
       font-size: 40px;
     }
 
-    .menu-card-body {
+    .menu-card-body-old {
       padding: 12px;
     }
 
-    .menu-card-name {
+    .menu-card-name-old {
       font-weight: 700;
       font-size: 0.9rem;
       color: ${smoke};
@@ -421,24 +421,24 @@ export function buildStyles(cfg) {
       text-overflow: ellipsis;
     }
 
-    .menu-card-price {
+    .menu-card-price-old {
       font-weight: 900;
       color: ${p};
       font-size: 1.1rem;
     }
 
-    .menu-card-rating {
+    .menu-card-rating-old {
       display: flex;
       gap: 2px;
       margin-top: 6px;
       font-size: 0.9rem;
     }
 
-    .menu-card-stars {
+    .menu-card-stars-old {
       color: ${s};
     }
 
-    .menu-card-rating-text {
+    .menu-card-rating-text-old {
       color: ${ash};
       font-size: 0.75rem;
       margin-left: 4px;
@@ -449,33 +449,124 @@ export function buildStyles(cfg) {
       position: relative;
       overflow: hidden;
       padding: 8px 4px 24px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      margin: 0 -8px;
     }
 
     .menu-carousel-track {
       display: flex;
-      transition: transform 0.5s ease-in-out;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .menu-carousel-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
+    .menu-card {
+      flex: 0 0 calc(100% - 32px);
+      margin: 0 16px;
+      background: ${cream};
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      scroll-snap-align: start;
+      transition: transform 0.3s ease;
+    }
+
+    @media (min-width: 480px) {
+      .menu-card {
+        flex: 0 0 calc(50% - 32px);
+      }
+    }
+
+    @media (min-width: 768px) {
+      .menu-card {
+        flex: 0 0 calc(33.333% - 32px);
+      }
+    }
+
+    .menu-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+
+    .menu-card-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
       background: ${light};
-      margin: 0 4px;
-      cursor: pointer;
-      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
     }
 
-    .menu-carousel-dot.active {
-      background: ${p};
-      transform: scale(1.2);
+    .menu-card-body {
+      padding: 16px;
+    }
+
+    .menu-card-name {
+      font-weight: 800;
+      font-size: 1rem;
+      color: ${smoke};
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .menu-card-price {
+      font-weight: 900;
+      color: ${p};
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+
+    .menu-card-rating {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .menu-card-stars {
+      color: #f39c12;
+      font-size: 1rem;
+      letter-spacing: 2px;
+    }
+
+    .menu-card-rating-text {
+      color: ${ash};
+      font-size: 0.75rem;
+      font-weight: 600;
     }
 
     .menu-carousel-dots {
       display: flex;
       justify-content: center;
-      gap: 8px;
-      margin-top: 12px;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .menu-carousel-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: ${light};
+      opacity: 0.5;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .menu-carousel-dot:hover {
+      opacity: 0.8;
+      transform: scale(1.1);
+    }
+
+    .menu-carousel-dot.active {
+      background: ${p};
+      opacity: 1;
+      transform: scale(1.3);
+      box-shadow: 0 0 12px ${p};
     }
 
     .socials-row {
@@ -841,57 +932,64 @@ export function buildStyles(cfg) {
     /* Admin Menu Grid */
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
     }
 
     .menu-admin-card {
       background: ${cream};
-      border-radius: 24px;
+      border-radius: 28px;
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.1);
     }
 
     .menu-admin-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     }
 
     .menu-admin-img {
       width: 100%;
-      height: 180px;
+      height: 200px;
       object-fit: cover;
       background: ${light};
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 60px;
+      font-size: 70px;
     }
 
     .menu-admin-body {
-      padding: 16px;
+      padding: 20px;
     }
 
     .menu-admin-name {
       font-weight: 800;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       color: ${smoke};
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      line-height: 1.3;
     }
 
     .menu-admin-desc {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       color: ${ash};
-      margin-bottom: 10px;
-      line-height: 1.4;
+      margin-bottom: 12px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .menu-admin-price {
       font-weight: 900;
       color: ${p};
-      font-size: 1.2rem;
-      margin-bottom: 12px;
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+      text-shadow: 0 2px 4px rgba(232, 93, 4, 0.2);
     }
 
     .menu-admin-actions {
@@ -920,24 +1018,28 @@ export function buildStyles(cfg) {
 
     .upload-area {
       border: 2px dashed ${light};
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 20px;
+      padding: 32px 20px;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.2s;
+      transition: all 0.3s ease;
       background: white;
       margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     .upload-area:hover {
       border-color: ${p};
+      box-shadow: 0 8px 24px rgba(232, 93, 4, 0.15);
+      transform: translateY(-2px);
     }
 
     .upload-preview {
       max-width: 100%;
       max-height: 200px;
-      border-radius: 12px;
+      border-radius: 16px;
       object-fit: cover;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     }
   `
 }
