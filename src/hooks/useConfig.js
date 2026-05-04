@@ -12,7 +12,14 @@ export function useConfig() {
     slogan: '🔥 Pollos a la parrilla · Empanadas · Platos',
     logo_url: '',
     color_primary: '#E85D04',
-    color_secondary: '#FAA307'
+    color_secondary: '#FAA307',
+    favicon_16: '',
+    favicon_32: '',
+    favicon_48: '',
+    favicon_64: '',
+    favicon_128: '',
+    favicon_192: '',
+    favicon_512: ''
   }), [])
 
   const [cfg, setCfg] = useState(defaultConfig)
@@ -27,7 +34,7 @@ export function useConfig() {
         const { data, error } = await supabase
           .from('config')
           .select('key, value')
-          .in('key', ['business_name', 'slogan', 'logo_url', 'color_primary', 'color_secondary'])
+          .in('key', ['business_name', 'slogan', 'logo_url', 'color_primary', 'color_secondary', 'favicon_16', 'favicon_32', 'favicon_48', 'favicon_64', 'favicon_128', 'favicon_192', 'favicon_512'])
 
         if (error) throw error
 
