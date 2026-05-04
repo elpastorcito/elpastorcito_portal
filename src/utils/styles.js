@@ -444,42 +444,37 @@ export function buildStyles(cfg) {
       margin-left: 4px;
     }
 
-    /* Carrusel automático */
     .menu-carousel-container {
       position: relative;
       overflow: hidden;
-      padding: 8px 4px 24px;
+      padding: 16px 8px 32px;
       border-radius: 24px;
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
-      margin: 0 -8px;
+      margin: 0 -4px;
     }
 
     .menu-carousel-track {
       display: flex;
       transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 100%;
     }
 
     .menu-card {
-      flex: 0 0 calc(100% - 32px);
-      margin: 0 16px;
+      flex: 0 0 100%;
+      max-width: 400px;
+      margin: 0 auto;
       background: ${cream};
       border-radius: 24px;
       overflow: hidden;
       box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-      scroll-snap-align: start;
+      scroll-snap-align: center;
       transition: transform 0.3s ease;
     }
 
     @media (min-width: 480px) {
       .menu-card {
-        flex: 0 0 calc(50% - 32px);
-      }
-    }
-
-    @media (min-width: 768px) {
-      .menu-card {
-        flex: 0 0 calc(33.333% - 32px);
+        max-width: 450px;
       }
     }
 
@@ -712,6 +707,89 @@ export function buildStyles(cfg) {
       font-size: 0.75rem;
       opacity: 0.9;
       margin-top: 4px;
+    }
+
+    /* Chart types selector */
+    .chart-type-btn {
+      background: ${ash};
+      border: none;
+      color: ${light};
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .chart-type-btn:hover {
+      background: ${p};
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .chart-type-btn.active {
+      background: linear-gradient(140deg, ${p}, ${s});
+      color: white;
+      box-shadow: 0 4px 12px rgba(232, 93, 4, 0.4);
+    }
+
+    /* Chart containers */
+    .chart-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      gap: 12px;
+      padding: 24px 16px 16px;
+      min-height: 160px;
+      overflow-x: auto;
+    }
+
+    .chart-bar-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 40px;
+    }
+
+    .chart-count {
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: ${p};
+      min-height: 18px;
+    }
+
+    .chart-bar {
+      width: 32px;
+      background: linear-gradient(180deg, ${p}, ${s});
+      border-radius: 8px 8px 0 0;
+      transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(232, 93, 4, 0.3);
+    }
+
+    .chart-date {
+      font-size: 0.7rem;
+      color: ${ash};
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* Line and area charts */
+    .chart-container-line {
+      padding: 20px 10px 10px;
+      overflow-x: auto;
+    }
+
+    .chart-svg {
+      width: 100%;
+      max-width: 400px;
+      display: block;
+      margin: 0 auto;
     }
 
     .data-table {
