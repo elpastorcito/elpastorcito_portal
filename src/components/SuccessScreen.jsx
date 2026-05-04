@@ -75,7 +75,7 @@ export function SuccessScreen({ name, cfg }) {
 
           {menu.length > 0 && (
             <>
-              <h3 style={{ marginBottom: 12, color: 'var(--light)' }}>
+              <h3 style={{ marginBottom: 16, color: 'var(--light)', textAlign: 'center' }}>
                 🍗 Nuestro menú
               </h3>
               
@@ -91,11 +91,6 @@ export function SuccessScreen({ name, cfg }) {
                       <div 
                         key={item.id} 
                         className="menu-card"
-                        style={{ 
-                          minWidth: '100%', 
-                          flexShrink: 0,
-                          transition: 'transform 0.5s ease-in-out'
-                        }}
                       >
                         {item.image_url ? (
                           <img src={item.image_url} alt={item.name} className="menu-card-img" />
