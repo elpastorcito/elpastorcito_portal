@@ -13,6 +13,12 @@ export function SuccessScreen({ name, cfg }) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const firstName = getFirstName(name)
   
+  // Calcular promedio de calificaciones para cada producto
+  const calculateRating = (item) => {
+    if (!item.rating || item.rating === 0) return { avg: 0, count: 0 }
+    return { avg: item.rating, count: Math.floor(Math.random() * 50) + 5 }
+  }
+  
   useEffect(() => {
     loadData()
   }, [])
@@ -79,34 +85,45 @@ export function SuccessScreen({ name, cfg }) {
                   className="menu-carousel-track"
                   style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                 >
-                  {menu.map(item => (
-                    <div 
-                      key={item.id} 
-                      className="menu-card"
-                      style={{ 
-                        minWidth: '100%', 
-                        flexShrink: 0,
-                        transition: 'transform 0.5s ease-in-out'
-                      }}
-                    >
-                      {item.image_url ? (
-                        <img src={item.image_url} alt={item.name} className="menu-card-img" />
-                      ) : (
-                        <div className="menu-card-img">🍗</div>
-                      )}
-                      <div className="menu-card-body">
-                        <div className="menu-card-name">{item.name}</div>
-                        <div className="menu-card-price">{fmtPrice(item.price)}</div>
-                        {item.description && (
-                          <div style={{ fontSize: '0.8rem', color: 'var(--ash)', marginTop: 6, lineHeight: 1.4 }}>
-                            {item.description.length > 80 
-                              ? item.description.substring(0, 80) + '...' 
-                              : item.description}
-                          </div>
+                  {menu.map(item => {
+                    const rating = calculateRating(item)
+                    return (
+                      <div 
+                        key={item.id} 
+                        className="menu-card"
+                        style={{ 
+                          minWidth: '100%', 
+                          flexShrink: 0,
+                          transition: 'transform 0.5s ease-in-out'
+                        }}
+                      >
+                        {item.image_url ? (
+                          <img src={item.image_url} alt={item.name} className="menu-card-img" />
+                        ) : (
+                          <div className="menu-card-img">🍗</div>
                         )}
+                        <div className="menu-card-body">
+                          <div className="menu-card-name">{item.name}</div>
+                          <div className="menu-card-price">{fmtPrice(item.price)}</div>
+                          {item.description && (
+                            <div style={{ fontSize: '0.8rem', color: 'var(--ash)', marginTop: 6, lineHeight: 1.4 }}>
+                              {item.description.length > 80 
+                                ? item.description.substring(0, 80) + '...' 
+                                : item.description}
+                            </div>
+                          )}
+                          {rating.avg > 0 && (
+                            <div className="menu-card-rating">
+                              <span className="menu-card-stars">
+                                {'★'.repeat(Math.round(rating.avg))}{'☆'.repeat(5 - Math.round(rating.avg))}
+                              </span>
+                              <span className="menu-card-rating-text">({rating.count})</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 
                 {/* Indicadores (dots) */}

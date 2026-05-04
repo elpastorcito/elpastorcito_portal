@@ -17,7 +17,8 @@ export function MenuTab() {
     price: '',
     category: '',
     image_url: '',
-    available: true
+    available: true,
+    rating: 0
   }
 
   useEffect(() => { loadItems() }, [])
@@ -119,6 +120,20 @@ export function MenuTab() {
                 <div className="menu-admin-name">{item.name}</div>
                 <div className="menu-admin-desc">{item.description || 'Sin descripción'}</div>
                 <div className="menu-admin-price">{fmtPrice(item.price)}</div>
+                
+                {/* Calificación con estrellas */}
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--ash)', marginBottom: 4, fontWeight: 600 }}>Calificación:</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '1.3rem', color: '#f39c12', letterSpacing: '2px' }}>
+                      {'★'.repeat(Math.round(item.rating || 0))}{'☆'.repeat(5 - Math.round(item.rating || 0))}
+                    </span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--ash)', fontWeight: 600 }}>
+                      {item.rating ? item.rating.toFixed(1) : 'Sin calificar'}
+                    </span>
+                  </div>
+                </div>
+                
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                   <span className={`badge ${item.available ? 'badge-green' : 'badge-red'}`}>
                     {item.available ? 'Disponible' : 'No disponible'}
@@ -205,6 +220,22 @@ export function MenuTab() {
                 onChange={e => setEditingItem({ ...editingItem, description: e.target.value })}
                 style={{ resize: 'vertical' }}
               />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Calificación (1-5 estrellas)</label>
+              <select 
+                className="form-input" 
+                value={editingItem?.rating || 0} 
+                onChange={e => setEditingItem({ ...editingItem, rating: parseFloat(e.target.value) })}
+              >
+                <option value="0">Sin calificar</option>
+                <option value="1">★☆☆☆☆ (1 estrella)</option>
+                <option value="2">★★☆☆☆ (2 estrellas)</option>
+                <option value="3">★★★☆☆ (3 estrellas)</option>
+                <option value="4">★★★★☆ (4 estrellas)</option>
+                <option value="5">★★★★★ (5 estrellas)</option>
+              </select>
             </div>
 
             <div className="checkbox-row">
