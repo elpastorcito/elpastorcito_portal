@@ -10,11 +10,23 @@ import { fmtPrice, getFirstName } from '../utils/formatters'
 export function SuccessScreen({ name, cfg }) {
   const [menu, setMenu] = useState([])
   const [socials, setSocials] = useState([])
+  const [currentSlide, setCurrentSlide] = useState(0)
   const firstName = getFirstName(name)
   
   useEffect(() => {
     loadData()
   }, [])
+
+  // Carrusel automático
+  useEffect(() => {
+    if (menu.length <= 1) return
+    
+    const interval = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % menu.length)
+    }, 3500) // Cambia cada 3.5 segundos
+    
+    return () => clearInterval(interval)
+  }, [menu.length])
   
   async function loadData() {
     try {
@@ -30,6 +42,10 @@ export function SuccessScreen({ name, cfg }) {
         console.warn('Error loading data in SuccessScreen:', e.message)
       }
     }
+  }
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index)
   }
 
   return (
@@ -56,20 +72,56 @@ export function SuccessScreen({ name, cfg }) {
               <h3 style={{ marginBottom: 12, color: 'var(--light)' }}>
                 🍗 Nuestro menú
               </h3>
-              <div className="menu-scroll">
-                {menu.map(item => (
-                  <div key={item.id} className="menu-card anim-slide-up">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} className="menu-card-img" />
-                    ) : (
-                      <div className="menu-card-img">🍗</div>
-                    )}
-                    <div className="menu-card-body">
-                      <div className="menu-card-name">{item.name}</div>
-                      <div className="menu-card-price">{fmtPrice(item.price)}</div>
+              
+              {/* Carrusel automático */}
+              <div className="menu-carousel-container">
+                <div 
+                  className="menu-carousel-track"
+                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                >
+                  {menu.map(item => (
+                    <div 
+                      key={item.id} 
+                      className="menu-card"
+                      style={{ 
+                        minWidth: '100%', 
+                        flexShrink: 0,
+                        transition: 'transform 0.5s ease-in-out'
+                      }}
+                    >
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="menu-card-img" />
+                      ) : (
+                        <div className="menu-card-img">🍗</div>
+                      )}
+                      <div className="menu-card-body">
+                        <div className="menu-card-name">{item.name}</div>
+                        <div className="menu-card-price">{fmtPrice(item.price)}</div>
+                        {item.description && (
+                          <div style={{ fontSize: '0.8rem', color: 'var(--ash)', marginTop: 6, lineHeight: 1.4 }}>
+                            {item.description.length > 80 
+                              ? item.description.substring(0, 80) + '...' 
+                              : item.description}
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  ))}
+                </div>
+                
+                {/* Indicadores (dots) */}
+                {menu.length > 1 && (
+                  <div className="menu-carousel-dots">
+                    {menu.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`menu-carousel-dot ${index === currentSlide ? 'active' : ''}`}
+                        onClick={() => goToSlide(index)}
+                        aria-label={`Ir al producto ${index + 1}`}
+                      />
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </>
           )}

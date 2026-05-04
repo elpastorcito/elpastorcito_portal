@@ -427,6 +427,57 @@ export function buildStyles(cfg) {
       font-size: 1.1rem;
     }
 
+    .menu-card-rating {
+      display: flex;
+      gap: 2px;
+      margin-top: 6px;
+      font-size: 0.9rem;
+    }
+
+    .menu-card-stars {
+      color: ${s};
+    }
+
+    .menu-card-rating-text {
+      color: ${ash};
+      font-size: 0.75rem;
+      margin-left: 4px;
+    }
+
+    /* Carrusel automático */
+    .menu-carousel-container {
+      position: relative;
+      overflow: hidden;
+      padding: 8px 4px 24px;
+    }
+
+    .menu-carousel-track {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+    }
+
+    .menu-carousel-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: ${light};
+      margin: 0 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .menu-carousel-dot.active {
+      background: ${p};
+      transform: scale(1.2);
+    }
+
+    .menu-carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
     .socials-row {
       display: flex;
       gap: 12px;
@@ -785,6 +836,108 @@ export function buildStyles(cfg) {
 
     .toggle-switch.active::after {
       transform: translateX(22px);
+    }
+
+    /* Admin Menu Grid */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .menu-admin-card {
+      background: ${cream};
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .menu-admin-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    }
+
+    .menu-admin-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: ${light};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+    }
+
+    .menu-admin-body {
+      padding: 16px;
+    }
+
+    .menu-admin-name {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: ${smoke};
+      margin-bottom: 6px;
+    }
+
+    .menu-admin-desc {
+      font-size: 0.85rem;
+      color: ${ash};
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .menu-admin-price {
+      font-weight: 900;
+      color: ${p};
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+    }
+
+    .menu-admin-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .badge-green {
+      background: #27ae60;
+      color: white;
+    }
+
+    .badge-red {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .upload-area {
+      border: 2px dashed ${light};
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      background: white;
+      margin-bottom: 16px;
+    }
+
+    .upload-area:hover {
+      border-color: ${p};
+    }
+
+    .upload-preview {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 12px;
+      object-fit: cover;
     }
   `
 }
