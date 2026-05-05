@@ -43,14 +43,17 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
     if (!file) return
     setUploading(true)
     try {
-      const ext = file.name.split('.').pop()
-      const path = `logos/logo_principal.${ext}`
+      // Sanitizar nombre del archivo: solo letras, números, guiones y punto
+      const originalExt = file.name.split('.').pop().toLowerCase()
+      const safeExt = originalExt.replace(/[^a-z0-9]/gi, '')
+      const path = `logos/logo_principal.${safeExt}`
       const result = await adminApi.uploadImage(path, file)
       const urlWithCache = `${result.url}?v=${Date.now()}`
       setForm({ ...form, logo_url: urlWithCache })
       showToast('Logo subido')
     } catch (err) {
-      showToast('Error al subir logo')
+      console.error('Error uploading logo:', err)
+      showToast('Error al subir logo: ' + (err.message || 'Verifica el nombre del archivo'))
     } finally {
       setUploading(false)
     }
@@ -61,14 +64,17 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
     if (!file) return
     setUploading(true)
     try {
-      const ext = file.name.split('.').pop()
-      const path = `favicons/favicon_${size}.${ext}`
+      // Sanitizar nombre del archivo: solo letras, números, guiones y punto
+      const originalExt = file.name.split('.').pop().toLowerCase()
+      const safeExt = originalExt.replace(/[^a-z0-9]/gi, '')
+      const path = `favicons/favicon_${size}.${safeExt}`
       const result = await adminApi.uploadImage(path, file)
       const urlWithCache = `${result.url}?v=${Date.now()}`
       setForm({ ...form, [`favicon_${size}`]: urlWithCache })
       showToast(`Favicon ${size}x${size} subido`)
     } catch (err) {
-      showToast('Error al subir favicon')
+      console.error('Error uploading favicon:', err)
+      showToast('Error al subir favicon: ' + (err.message || 'Verifica el nombre del archivo'))
     } finally {
       setUploading(false)
     }
