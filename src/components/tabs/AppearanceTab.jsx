@@ -43,10 +43,14 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
     if (!file) return
     setUploading(true)
     try {
-      // Sanitizar nombre del archivo: solo letras, números, guiones y punto
-      const originalExt = file.name.split('.').pop().toLowerCase()
-      const safeExt = originalExt.replace(/[^a-z0-9]/gi, '')
-      const path = `logos/logo_principal.${safeExt}`
+      // Sanitizar nombre del archivo: normalizar, quitar acentos y caracteres especiales
+      const originalName = file.name
+      const originalExt = originalName.split('.').pop().toLowerCase()
+      // Normalizar: quitar acentos y caracteres unicode
+      const normalizedName = originalName.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      // Reemplazar cualquier caracter que no sea letra, número, guión o punto por guión bajo
+      const safeName = normalizedName.replace(/[^a-zA-Z0-9.\-_]/g, "_")
+      const path = `logos/${safeName}`
       const result = await adminApi.uploadImage(path, file)
       const urlWithCache = `${result.url}?v=${Date.now()}`
       setForm({ ...form, logo_url: urlWithCache })
@@ -64,10 +68,14 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
     if (!file) return
     setUploading(true)
     try {
-      // Sanitizar nombre del archivo: solo letras, números, guiones y punto
-      const originalExt = file.name.split('.').pop().toLowerCase()
-      const safeExt = originalExt.replace(/[^a-z0-9]/gi, '')
-      const path = `favicons/favicon_${size}.${safeExt}`
+      // Sanitizar nombre del archivo: normalizar, quitar acentos y caracteres especiales
+      const originalName = file.name
+      const originalExt = originalName.split('.').pop().toLowerCase()
+      // Normalizar: quitar acentos y caracteres unicode
+      const normalizedName = originalName.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      // Reemplazar cualquier caracter que no sea letra, número, guión o punto por guión bajo
+      const safeName = normalizedName.replace(/[^a-zA-Z0-9.\-_]/g, "_")
+      const path = `favicons/favicon_${size}_${safeName}`
       const result = await adminApi.uploadImage(path, file)
       const urlWithCache = `${result.url}?v=${Date.now()}`
       setForm({ ...form, [`favicon_${size}`]: urlWithCache })
