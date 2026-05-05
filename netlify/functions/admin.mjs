@@ -583,23 +583,36 @@ export const handler = async (event, context) => {
     }
     // POST: Upload image (logo o menu)
     if (path === 'upload') {
+      // LOGGING DETALLADO PARA DEPURAR
+      console.log('=== UPLOAD REQUEST START ===')
+      console.log('Event body:', event.body?.substring(0, 200))
+      console.log('Content-Type header:', event.headers['content-type'])
+      
       // VALIDACIÓN CON ZOD
       let validatedData
       try {
         const rawData = JSON.parse(event.body)
+        console.log('Parsed raw data:', { 
+          filePath: rawData.filePath, 
+          contentType: rawData.contentType,
+          base64DataLength: rawData.base64Data?.length || 0 
+        })
         validatedData = uploadImageSchema.parse(rawData)
+        console.log('Validation successful')
       } catch (validationError) {
         if (validationError instanceof z.ZodError) {
-          const errorMessage = validationError.errors.map(e => e.message).join(', ')
-          console.warn('Upload validation error:', validationError.errors)
+          const errorMessage = validationError.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('; ')
+          console.error('Upload validation error details:', validationError.errors)
           return {
             statusCode: 400,
             headers: corsHeaders,
             body: JSON.stringify({ 
-              error: `Datos inválidos: ${errorMessage}` 
+              error: `Datos inválidos: ${errorMessage}`,
+              details: validationError.errors
             })
           }
         }
+        console.error('JSON parse error:', validationError)
         throw validationError
       }
       
