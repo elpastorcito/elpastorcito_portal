@@ -44,7 +44,7 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
     setUploading(true)
     try {
       const ext = file.name.split('.').pop()
-      const path = `logo/logo_principal.${ext}`
+      const path = `logos/logo_principal.${ext}`
       const result = await adminApi.uploadImage(path, file)
       const urlWithCache = `${result.url}?v=${Date.now()}`
       setForm({ ...form, logo_url: urlWithCache })
