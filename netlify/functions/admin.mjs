@@ -26,7 +26,7 @@ const ALLOWED_ORIGINS = [
 const COOKIE_OPTIONS = {
   httpOnly: true,      // No accesible desde JavaScript (protege contra XSS)
   secure: true,        // Solo HTTPS en producción
-  sameSite: 'lax',  // Protege contra CSRF
+  sameSite: 'none',    // Permitir cross-origin (necesario para Netlify)
   path: '/',
   maxAge: 60 * 60      // 1 hora de sesión
 }
@@ -38,6 +38,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
   'Access-Control-Allow-Credentials': 'true',  // Permitir cookies
+  'Access-Control-Expose-Headers': 'Set-Cookie',  // Exponer Set-Cookie al frontend
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'X-XSS-Protection': '1; mode=block',
