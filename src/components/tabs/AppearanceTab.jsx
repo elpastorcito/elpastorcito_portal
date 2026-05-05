@@ -43,13 +43,10 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
     if (!file) return
     setUploading(true)
     try {
-      // Sanitizar nombre del archivo: normalizar, quitar acentos y caracteres especiales
-      const originalName = file.name
-      const originalExt = originalName.split('.').pop().toLowerCase()
-      // Normalizar: quitar acentos y caracteres unicode
-      const normalizedName = originalName.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      // Reemplazar cualquier caracter que no sea letra, número, guión o punto por guión bajo
-      const safeName = normalizedName.replace(/[^a-zA-Z0-9.\-_]/g, "_")
+      // Obtener extensión del archivo
+      const ext = file.name.split('.').pop().toLowerCase()
+      // Usar nombre fijo para el logo principal
+      const safeName = `logo_principal.${ext}`
       const path = `logos/${safeName}`
       const result = await adminApi.uploadImage(path, file)
       const urlWithCache = `${result.url}?v=${Date.now()}`
@@ -68,14 +65,11 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
     if (!file) return
     setUploading(true)
     try {
-      // Sanitizar nombre del archivo: normalizar, quitar acentos y caracteres especiales
-      const originalName = file.name
-      const originalExt = originalName.split('.').pop().toLowerCase()
-      // Normalizar: quitar acentos y caracteres unicode
-      const normalizedName = originalName.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      // Reemplazar cualquier caracter que no sea letra, número, guión o punto por guión bajo
-      const safeName = normalizedName.replace(/[^a-zA-Z0-9.\-_]/g, "_")
-      const path = `favicons/favicon_${size}_${safeName}`
+      // Obtener extensión del archivo
+      const ext = file.name.split('.').pop().toLowerCase()
+      // Usar nombre fijo basado en el tamaño del favicon
+      const safeName = `favicon_${size}x${size}.${ext}`
+      const path = `favicons/${safeName}`
       const result = await adminApi.uploadImage(path, file)
       const urlWithCache = `${result.url}?v=${Date.now()}`
       setForm({ ...form, [`favicon_${size}`]: urlWithCache })
