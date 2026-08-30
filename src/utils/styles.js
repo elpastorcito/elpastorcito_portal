@@ -22,7 +22,7 @@ export function buildStyles(cfg) {
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: ${smoke};
       color: ${cream};
       min-height: 100vh;
@@ -117,7 +117,7 @@ export function buildStyles(cfg) {
       width: 100px;
       height: 100px;
       border-radius: 50%;
-      background: linear-gradient(140deg, ${p}, ${s});
+      background: linear-gradient(135deg, ${smoke} 0%, ${ash} 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -134,10 +134,14 @@ export function buildStyles(cfg) {
     }
 
     .business-name {
-      font-family: 'Lobster', cursive;
-      font-size: 2.2rem;
+      font-family: "Playfair Display", serif;
+      font-size: 2.4rem;
       text-align: center;
-      background: linear-gradient(140deg, ${p}, ${s});
+      color: var(--cream);
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
@@ -152,7 +156,18 @@ export function buildStyles(cfg) {
     }
 
     .wifi-badge {
-      background: linear-gradient(140deg, ${p}, ${s});
+      background: rgba(255,255,255,0.1);
+      border: 1.5px solid rgba(255,255,255,0.2);
+      color: var(--cream);
+      padding: 14px 24px;
+      border-radius: 16px;
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 28px;
+      font-size: 0.9rem;
+      backdrop-filter: blur(10px);
+      letter-spacing: 0.02em;
+    }
       color: white;
       padding: 12px 20px;
       border-radius: 50px;
@@ -164,7 +179,12 @@ export function buildStyles(cfg) {
     }
 
     .card {
-      background: ${cream};
+      background: white;
+      color: var(--smoke);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
       color: ${smoke};
       border-radius: 28px;
       padding: 28px;
@@ -185,11 +205,21 @@ export function buildStyles(cfg) {
 
     .form-input {
       width: 100%;
-      padding: 14px 16px;
-      border: 2px solid ${light};
+      padding: 14px 18px;
+      border: 1.5px solid var(--light);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: "Poppins", sans-serif;
+      transition: all 0.25s;
+      background: white;
+      color: var(--smoke);
+    }
+    .form-input::placeholder {
+      color: #aaa;
+    }
       border-radius: 16px;
       font-size: 1rem;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Poppins', sans-serif;
       transition: border-color 0.2s;
       background: white;
     }
@@ -244,7 +274,7 @@ export function buildStyles(cfg) {
       border-radius: 16px;
       font-size: 1.1rem;
       font-weight: 800;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Poppins', sans-serif;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
       display: flex;
@@ -258,7 +288,11 @@ export function buildStyles(cfg) {
     }
 
     .btn-primary {
-      background: linear-gradient(140deg, ${p}, ${s});
+      background: linear-gradient(135deg, ${p}, ${s});
+      color: white;
+      box-shadow: 0 4px 16px rgba(232, 93, 4, 0.3);
+      letter-spacing: 0.02em;
+    }
       color: white;
       box-shadow: 0 6px 20px rgba(232, 93, 4, 0.4);
     }
@@ -314,7 +348,7 @@ export function buildStyles(cfg) {
     }
 
     .modal-title {
-      font-family: 'Lobster', cursive;
+      font-family: 'Playfair Display', serif;
       font-size: 1.5rem;
       margin-bottom: 16px;
       color: ${p};
@@ -340,10 +374,12 @@ export function buildStyles(cfg) {
     }
 
     .success-title {
-      font-family: 'Lobster', cursive;
-      font-size: 2rem;
+      font-family: "Playfair Display", serif;
+      font-size: 2.2rem;
       margin-bottom: 12px;
-      background: linear-gradient(140deg, ${p}, ${s});
+      color: var(--cream);
+      font-weight: 700;
+    }
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -597,7 +633,7 @@ export function buildStyles(cfg) {
     }
 
     .admin-header {
-      background: linear-gradient(140deg, ${p}, ${s});
+      background: linear-gradient(135deg, ${smoke} 0%, ${ash} 100%);
       padding: 16px 20px;
       display: flex;
       justify-content: space-between;
@@ -609,20 +645,28 @@ export function buildStyles(cfg) {
     }
 
     .admin-header-title {
-      font-family: 'Lobster', cursive;
-      font-size: 1.3rem;
+      font-family: "Playfair Display", serif;
+      font-size: 1.4rem;
       color: white;
+      font-weight: 700;
+      letter-spacing: -0.01em;
     }
 
     .admin-logout {
-      background: rgba(255,255,255,0.2);
-      border: none;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
       color: white;
-      padding: 8px 16px;
-      border-radius: 12px;
-      font-weight: 700;
+      padding: 8px 20px;
+      border-radius: 10px;
+      font-weight: 500;
       cursor: pointer;
-      font-family: 'Nunito', sans-serif;
+      font-family: "Poppins", sans-serif;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
+    }
+    .admin-logout:hover {
+      background: rgba(255,255,255,0.25);
     }
 
     .admin-tabs {
@@ -636,21 +680,38 @@ export function buildStyles(cfg) {
 
     .admin-tab {
       flex: 0 0 auto;
-      padding: 10px 18px;
-      border-radius: 14px;
-      border: none;
-      background: ${ash};
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: 1.5px solid transparent;
+      background: transparent;
+      color: var(--light);
+      font-weight: 500;
+      cursor: pointer;
+      font-family: "Poppins", sans-serif;
+      font-size: 0.85rem;
+      transition: all 0.25s;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+    .admin-tab:hover {
+      background: rgba(255,255,255,0.08);
+    }
       color: ${light};
       font-weight: 700;
       cursor: pointer;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Poppins', sans-serif;
       font-size: 0.9rem;
       transition: all 0.2s;
       white-space: nowrap;
     }
 
     .admin-tab.active {
-      background: linear-gradient(140deg, ${p}, ${s});
+      background: var(--cream);
+      color: var(--smoke);
+      font-weight: 700;
+      border-color: var(--p);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
       color: white;
       box-shadow: 0 4px 12px rgba(232, 93, 4, 0.3);
     }
@@ -662,7 +723,14 @@ export function buildStyles(cfg) {
     }
 
     .admin-card {
-      background: ${cream};
+      background: white;
+      color: var(--smoke);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
       color: ${smoke};
       border-radius: 24px;
       padding: 24px;
@@ -671,10 +739,13 @@ export function buildStyles(cfg) {
     }
 
     .admin-card-title {
-      font-family: 'Lobster', cursive;
-      font-size: 1.3rem;
-      margin-bottom: 16px;
-      color: ${p};
+      font-family: "Playfair Display", serif;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      color: var(--smoke);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
     }
 
     .stats-grid {
@@ -691,7 +762,22 @@ export function buildStyles(cfg) {
     }
 
     .stat-card {
-      background: linear-gradient(140deg, ${p}, ${s});
+      background: white;
+      color: white;
+      padding: 20px 16px;
+      border-radius: 16px;
+      text-align: center;
+      border-left: 4px solid var(--p);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .stat-card .stat-value {
+      color: var(--p);
+      font-family: "Playfair Display", serif;
+    }
+    .stat-card .stat-label {
+      color: var(--ash);
+      opacity: 1;
+    }
       color: white;
       padding: 16px;
       border-radius: 20px;
@@ -733,7 +819,7 @@ export function buildStyles(cfg) {
     }
 
     .chart-type-btn.active {
-      background: linear-gradient(140deg, ${p}, ${s});
+      background: linear-gradient(135deg, ${smoke} 0%, ${ash} 100%);
       color: white;
       box-shadow: 0 4px 12px rgba(232, 93, 4, 0.4);
     }
@@ -800,8 +886,15 @@ export function buildStyles(cfg) {
 
     .data-table th {
       text-align: left;
-      padding: 12px 8px;
-      border-bottom: 2px solid ${ash};
+      padding: 14px 12px;
+      border-bottom: 2px solid var(--light);
+      color: var(--ash);
+      font-weight: 600;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
       color: ${ash};
       font-weight: 700;
       font-size: 0.8rem;
@@ -818,7 +911,7 @@ export function buildStyles(cfg) {
       border: 2px solid ${light};
       border-radius: 14px;
       font-size: 0.95rem;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: white;
       transition: border-color 0.2s;
     }
@@ -871,7 +964,14 @@ export function buildStyles(cfg) {
     }
 
     .login-card {
-      background: ${cream};
+      background: white;
+      color: var(--smoke);
+      border-radius: 24px;
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
       color: ${smoke};
       border-radius: 28px;
       padding: 32px;
@@ -887,11 +987,13 @@ export function buildStyles(cfg) {
     }
 
     .login-title {
-      font-family: 'Lobster', cursive;
+      font-family: "Playfair Display", serif;
       font-size: 1.6rem;
       text-align: center;
-      margin-bottom: 24px;
-      color: ${p};
+      margin-bottom: 28px;
+      color: var(--smoke);
+      font-weight: 700;
+    }
     }
 
     .login-hint {
@@ -969,7 +1071,7 @@ export function buildStyles(cfg) {
       border: 2px solid ${light};
       border-radius: 10px;
       font-size: 0.9rem;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'Poppins', sans-serif;
     }
 
     .social-input:focus {
