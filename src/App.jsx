@@ -68,15 +68,13 @@ export default function App() {
     // La verificación se hace automáticamente en las solicitudes al backend
     const checkSession = async () => {
       try {
-        // Intentar obtener config para verificar si la sesión es válida
         const config = await adminApi.getConfigAll()
         if (config && !config.error) {
           setAdminLoggedIn(true)
           setView('admin')
         }
-      } catch (err) {
-        // Sesión inválida o expirada
-        console.log('No hay sesión activa')
+      } catch {
+        // Sesión inválida o expirada - quedarse en vista portal
       }
     }
     
@@ -94,7 +92,7 @@ export default function App() {
     setView('success')
   }
 
-  const handleAdminLogin = (user, token) => {
+  const handleAdminLogin = (user) => {
     setCurrentUser(user)
     setAdminLoggedIn(true)
     setView('admin')
@@ -122,7 +120,7 @@ export default function App() {
         color: 'var(--cream)'
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 60, marginBottom: 20 }}>🐓</div>
+          <img src="/Logo.png" alt="Logo" style={{ width: 100, height: 100, objectFit: "contain", marginBottom: 20 }} />
           <div style={{ fontFamily: 'Lobster', fontSize: '1.5rem' }}>Cargando...</div>
         </div>
       </div>

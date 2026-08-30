@@ -44,11 +44,7 @@ export function ConfigTab() {
       <div className="admin-card">
         <div className="admin-card-title">ℹ️ Información del sistema</div>
         <div style={{ fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--ash)' }}>
-          <p><strong>Proyecto Supabase:</strong></p>
-          <p style={{ fontFamily: 'monospace', fontSize: '0.8rem', background: 'var(--light)', padding: 8, borderRadius: 8, marginTop: 4 }}>
-            {import.meta.env.VITE_SUPABASE_URL || 'No configurado'}
-          </p>
-          <p style={{ marginTop: 16 }}>
+          <p style={{ marginTop: 8 }}>
             <strong>Autenticación:</strong> Supabase Auth con email/password
           </p>
           <p style={{ marginTop: 12, fontSize: '0.8rem' }}>

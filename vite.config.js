@@ -3,19 +3,14 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [
-    react({
-      // Optimización: Incluir displayName para mejor debugging en producción sin costo significativo
-      babel: {
-        plugins: [],
-      }
-    })
+    react()
   ],
   server: {
     headers: {
       // Content Security Policy estricta para prevenir XSS
       // Nota: 'unsafe-inline' y 'unsafe-eval' se mantienen por compatibilidad con Vite HMR en desarrollo
       // En producción, usar nonces o hashes para eliminar unsafe-inline
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'sha256-<nonce-placeholder>' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co https://*.netlify.app;",
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co https://*.netlify.app;",
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
@@ -33,10 +28,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Code splitting estratégico
           vendor: ['react', 'react-dom'],
           supabase: ['@supabase/supabase-js'],
-          zod: ['zod']
         },
         // Nomenclatura optimizada para caching
         entryFileNames: 'assets/[name].[hash].js',

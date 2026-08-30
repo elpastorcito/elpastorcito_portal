@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-# Sitemap
-Sitemap: https://elpastorcito-portal.netlify.app/sitemap.xml

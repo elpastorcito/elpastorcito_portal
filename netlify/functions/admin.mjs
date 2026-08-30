@@ -310,7 +310,7 @@ export const handler = async (event, context) => {
       await clearLoginAttempts(ip)
       
       // Crear headers para Set-Cookie con opciones seguras
-      const setCookieHeader = `admin_token=${data.session.access_token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`
+      const setCookieHeader = `admin_token=${data.session.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600`
       
       return {
         statusCode: 200,
@@ -619,11 +619,7 @@ export const handler = async (event, context) => {
       try {
         const { filePath, contentType, base64Data } = validatedData
         
-        console.log('Upload request received:', { 
-          filePath, 
-          contentType, 
-          dataLength: base64Data?.length || 0 
-        })
+
         
         // Validar que los datos requeridos existan
         if (!base64Data || !contentType || !filePath) {
@@ -704,10 +700,7 @@ export const handler = async (event, context) => {
         
         const actualSizeBytes = buffer.length
         
-        console.log('Image size check:', { 
-          actual: Math.round(actualSizeBytes / 1024 * 100) / 100 + 'KB',
-          max: MAX_SIZE_MB + 'MB'
-        })
+
         
         if (actualSizeBytes > maxSizeBytes) {
           return {
@@ -721,7 +714,7 @@ export const handler = async (event, context) => {
           }
         }
         
-        console.log('Uploading to storage:', safeFilePath)
+
         
         const { error: uploadError } = await supabaseAdmin
           .storage
@@ -737,14 +730,14 @@ export const handler = async (event, context) => {
           throw uploadError
         }
         
-        console.log('Upload successful, getting public URL')
+
 
         const { data: { publicUrl } } = supabaseAdmin
           .storage
           .from('Images')  // El nombre del bucket es case-sensitive: 'Images' con I mayúscula
           .getPublicUrl(safeFilePath)
           
-        console.log('Upload complete:', publicUrl)
+
 
         return {
           statusCode: 200,
@@ -769,7 +762,7 @@ export const handler = async (event, context) => {
 
     // POST: Logout - limpiar cookie HTTP-only
     if (path === 'logout') {
-      const clearCookieHeader = 'admin_token=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0'
+      const clearCookieHeader = 'admin_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0'
       
       return {
         statusCode: 200,

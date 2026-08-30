@@ -13,10 +13,10 @@ export function SuccessScreen({ name, cfg }) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const firstName = getFirstName(name)
   
-  // Calcular promedio de calificaciones para cada producto
-  const calculateRating = (item) => {
+  // Formatear calificación del producto
+  const formatRating = (item) => {
     if (!item.rating || item.rating === 0) return { avg: 0, count: 0 }
-    return { avg: item.rating, count: Math.floor(Math.random() * 50) + 5 }
+    return { avg: item.rating, count: 0 }
   }
   
   useEffect(() => {
@@ -86,7 +86,7 @@ export function SuccessScreen({ name, cfg }) {
                   style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                 >
                   {menu.map(item => {
-                    const rating = calculateRating(item)
+                    const rating = formatRating(item)
                     return (
                       <div 
                         key={item.id} 
@@ -112,7 +112,6 @@ export function SuccessScreen({ name, cfg }) {
                               <span className="menu-card-stars">
                                 {'★'.repeat(Math.round(rating.avg))}{'☆'.repeat(5 - Math.round(rating.avg))}
                               </span>
-                              <span className="menu-card-rating-text">({rating.count})</span>
                             </div>
                           )}
                         </div>

@@ -45,7 +45,7 @@ describe('StatsTab', () => {
     // Verificar que hay 4 stat-cards
     await waitFor(() => {
       const statValues = document.querySelectorAll('.stat-value')
-      expect(statValues.length).toBe(4)
+      expect(statValues.length).toBe(6)
     })
   })
 
@@ -101,9 +101,9 @@ describe('StatsTab', () => {
     render(<StatsTab />)
     
     await waitFor(() => {
-      // Verificar que hay stat-cards
+      // Verificar que hay stat-cards (6 en total)
       const statCards = document.querySelectorAll('.stat-card')
-      expect(statCards.length).toBe(4)
+      expect(statCards.length).toBe(6)
     })
   })
 

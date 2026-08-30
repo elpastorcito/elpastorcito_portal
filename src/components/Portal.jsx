@@ -62,7 +62,7 @@ export function Portal({ cfg, onRegister }) {
           {cfg.logo_url ? (
             <img src={cfg.logo_url} alt="Logo" />
           ) : (
-            <span>🐓</span>
+            <img src="/Logo.png" alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           )}
         </div>
 
@@ -89,6 +89,8 @@ export function Portal({ cfg, onRegister }) {
                 placeholder="Tu nombre"
                 value={form.name}
                 onChange={e => setForm({...form, name: e.target.value})}
+                aria-required="true"
+                aria-invalid={!!errors.name}
               />
               {errors.name && <div className="error-text">{errors.name}</div>}
             </div>
@@ -101,6 +103,8 @@ export function Portal({ cfg, onRegister }) {
                 placeholder="Ej: 1123456789"
                 value={form.phone}
                 onChange={e => setForm({...form, phone: e.target.value})}
+                aria-required="true"
+                aria-invalid={!!errors.phone}
               />
               {errors.phone && <div className="error-text">{errors.phone}</div>}
             </div>
@@ -113,6 +117,7 @@ export function Portal({ cfg, onRegister }) {
                 placeholder="tu@email.com (opcional)"
                 value={form.email}
                 onChange={e => setForm({...form, email: e.target.value})}
+                aria-invalid={!!errors.email}
               />
               {errors.email && <div className="error-text">{errors.email}</div>}
             </div>
@@ -130,9 +135,9 @@ export function Portal({ cfg, onRegister }) {
             </div>
             {errors.terms && <div className="error-text" style={{ marginTop: -8, marginBottom: 12 }}>{errors.terms}</div>}
 
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <button type="submit" className="btn btn-primary" disabled={loading} aria-label="Registrarse y conectarse al WiFi">
               {loading ? (
-                <><span className="spinner" /> Registrando...</>
+                <><span className="spinner" aria-hidden="true" /> Registrando...</>
               ) : (
                 <>🔥 ¡Conectarme al WiFi!</>
               )}

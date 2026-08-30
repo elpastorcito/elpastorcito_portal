@@ -10,9 +10,7 @@ import { useSessionTimeout } from '../hooks/useSessionTimeout'
 export function AdminPanel({ cfg, onCfgUpdated, onLogout, user }) {
   const [activeTab, setActiveTab] = useState('clients')
   
-  // Timeout de sesión: 30 minutos de inactividad
   const handleSessionTimeout = useCallback(() => {
-    console.log('Cerrando sesión por timeout')
     onLogout()
   }, [onLogout])
   

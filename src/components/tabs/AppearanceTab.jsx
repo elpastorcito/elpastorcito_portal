@@ -127,7 +127,7 @@ export function AppearanceTab({ cfg, onCfgUpdated }) {
           {form.logo_url ? (
             <img src={form.logo_url} alt="Logo" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
           ) : (
-            <span style={{ fontSize: 60 }}>🐓</span>
+            <img src="/Logo.png" alt="Logo" style={{ width: 80, height: 80, objectFit: "contain" }} />
           )}
         </div>
 

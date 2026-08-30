@@ -5,9 +5,9 @@ import React from 'react'
 // ============================================
 export function TermsModal({ businessName, onClose }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="terms-title">
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-title">Términos y Condiciones</div>
+        <div className="modal-title" id="terms-title">Términos y Condiciones</div>
         <div className="modal-text">
           <p><strong>1. Aceptación</strong></p>
           <p>Al conectarte a la red WiFi de {businessName}, aceptás estos términos y condiciones de uso.</p>
@@ -24,7 +24,7 @@ export function TermsModal({ businessName, onClose }) {
           <p><strong>5. Modificaciones</strong></p>
           <p>Nos reservamos el derecho de modificar estos términos en cualquier momento.</p>
         </div>
-        <button className="btn btn-primary" onClick={onClose}>
+        <button className="btn btn-primary" onClick={onClose} aria-label="Cerrar términos y condiciones">
           Entendido ✓
         </button>
       </div>

@@ -72,14 +72,38 @@ VALUES ('PEGAR_AQUI_EL_UID', 'tu_email@ejemplo.com');
 ```
 pastorcito-portal/
 ├── public/
-│   └── manifest.json
+│   └── manifest.json, icons, robots.txt
 ├── src/
-│   ├── main.jsx
-│   ├── supabase.js      ← Cliente público + wrapper admin API
-│   └── App.jsx          ← Toda la app (single file)
+│   ├── main.jsx                      ← Entry point
+│   ├── App.jsx                       ← Root component (routing)
+│   ├── supabase.js                   ← Supabase client + adminApi wrapper
+│   ├── components/
+│   │   ├── Portal.jsx                ← WiFi registration form
+│   │   ├── SuccessScreen.jsx         ← Post-registration screen
+│   │   ├── AdminLogin.jsx            ← Admin login form
+│   │   ├── AdminPanel.jsx            ← Admin dashboard shell
+│   │   ├── TermsModal.jsx            ← Terms & conditions modal
+│   │   ├── Flames.jsx                ← Animated flame decoration
+│   │   ├── SocialIcon.jsx            ← SVG social media icons
+│   │   └── tabs/
+│   │       ├── ClientsTab.jsx        ← Client list + search
+│   │       ├── StatsTab.jsx          ← Analytics charts
+│   │       ├── MenuTab.jsx           ← Menu CRUD
+│   │       ├── SocialsTab.jsx        ← Social networks config
+│   │       ├── AppearanceTab.jsx     ← Theme customization
+│   │       └── ConfigTab.jsx         ← System settings
+│   ├── hooks/
+│   │   ├── useConfig.js              ← Config loading + dynamic styles
+│   │   ├── useSessionTimeout.js      ← Auto-logout on inactivity
+│   │   └── useToast.js               ← Toast notifications
+│   ├── utils/
+│   │   ├── formatters.js             ← Date, price, CSV export
+│   │   └── styles.js                 ← Dynamic CSS generation
+│   └── test/
+│       └── setup.js                  ← Test configuration
 ├── netlify/
 │   └── functions/
-│       └── admin.mjs ← Protege SERVICE_KEY
+│       └── admin.mjs                 ← Serverless API (protects SERVICE_KEY)
 ├── index.html
 ├── vite.config.js
 ├── package.json
